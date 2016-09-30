@@ -1,0 +1,7 @@
+include README.rst
+include fragforce/sphere_data_6.p
+include fragforce/force.c
+include fragforce/force.h
+include fragforce/force.so
+include fragforce/force.o
+include fragforce/compile.sc
