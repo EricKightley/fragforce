@@ -11,7 +11,9 @@ _____
 The source code in /fragforce/fragforce is available as a PyPi package,
 fragforce. This can be installed, for example, using pip:
 
-$ pip install fragforce
+::
+
+  $ pip install fragforce
 
 Having done so, the package can then be imported just like any other:
 
