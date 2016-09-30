@@ -15,8 +15,9 @@ $ pip install fragforce
 
 Having done so, the package can then be imported just like any other:
 
->>>> import fragforce
->>>> a = fragforce.somefunction(b,c)
+::
+    >>>> import fragforce
+    >>>> a = fragforce.somefunction(b,c)
 
 Usage examples can be found in /examples/usage.py. These assume that
 fragforce has been installed from PyPi as a python package. 
@@ -54,9 +55,10 @@ filepath constructing using the os package. I think that this
 means just importing pywrappers like any other local file, 
 for example using sys:
 
->>>> import sys
->>>> sys.path.append('/home/cleveruser/path/to/fragforce/')
->>>> import deformation
+::
+    >>>> import sys
+    >>>> sys.path.append('/home/cleveruser/path/to/fragforce/')
+    >>>> import deformation
 
 will work on anyone's system. If it doesn't, look in pywrappers.py
 to modify the filepath for the pickle load and the ctypes import,
