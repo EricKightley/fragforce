@@ -36,9 +36,11 @@ need to import the functions and/or files locally. Things are set up
 to make this as painless as I know how to do. Code is distributed into 
 several independent files:
 
-/fragforce/fragforce/surface_triangulation.py
-/fragforce/fragforce/deformation.py
-/fragforce/fragforce/pywrappers.py
+::
+
+  /fragforce/fragforce/surface_triangulation.py
+  /fragforce/fragforce/deformation.py
+  /fragforce/fragforce/pywrappers.py
 
 None of these files imports any of the others, which will I hope
 reduce some headache in making any local modifications. The only
@@ -56,6 +58,7 @@ means just importing pywrappers like any other local file,
 for example using sys:
 
 ::
+
     >>>> import sys
     >>>> sys.path.append('/home/cleveruser/path/to/fragforce/')
     >>>> import deformation
