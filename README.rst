@@ -5,6 +5,63 @@ Numerical simulation of fluid ellipsoid in simple shear. Computes the motion,
 deformation, surface force, and fragmentation force on an ellipsoidal droplet.
 Companion to Kightley et al. (in prep). See /examples/usage.py for usage.
 
+Usage
+_____
+
+The source code in /fragforce/fragforce is available as a PyPi package,
+fragforce. This can be installed, for example, using pip:
+
+$ pip install fragforce
+
+Having done so, the package can then be imported just like any other:
+
+>>>> import fragforce
+>>>> a = fragforce.somefunction(b,c)
+
+Usage examples can be found in /examples/usage.py. These assume that
+fragforce has been installed from PyPi as a python package. 
+
+
+Source Code and Local Modifications
+___________________________________
+
+In the unlikely event that you are using this package and do not have a desk
+next to mine (our offices are under the bleachers in the football
+stadium, how do you like that?) you will likely want to modify or
+access the source code. Note that if you have installed the package
+as described above, modifying the contents of /fragforce/fragforce/
+will not affect anything you import from fragforce. Instead you'll
+need to import the functions and/or files locally. Things are set up
+to make this as painless as I know how to do. Code is distributed into 
+several independent files:
+
+/fragforce/fragforce/surface_triangulation.py
+/fragforce/fragforce/deformation.py
+/fragforce/fragforce/pywrappers.py
+
+None of these files imports any of the others, which will I hope
+reduce some headache in making any local modifications. The only
+potential issue is that pywrappers.py imports two files. One
+of them is a pickle file containing information on surface
+triangulations that has been hard-coded to save on computation 
+time (actually the one it imports is fast to generate but this
+system is in place in case we at some point want more accurate
+integration, at which point it will be desirable to import the
+triangulation). The other is a .so (see the Compiled C code
+section below). Both of these files are in the same directory
+as pywrappers.py and pywrappers imports them using a relative
+filepath constructing using the os package. I think that this 
+means just importing pywrappers like any other local file, 
+for example using sys:
+
+>>>> import sys
+>>>> sys.path.append('/home/cleveruser/path/to/fragforce/')
+>>>> import deformation
+
+will work on anyone's system. If it doesn't, look in pywrappers.py
+to modify the filepath for the pickle load and the ctypes import,
+both at the start of the file. 
+
 
 Dependencies
 ____________
