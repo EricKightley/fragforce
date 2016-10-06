@@ -561,7 +561,8 @@ void set_force_Vectorized(
     double srf_normals_sph[NumFacets][3])
 
 /*  Computes the force wrt each timestep and each plane. Takes as input the output of the deformation
-    simulation as well as some other constants. 
+    simulation as well as some other constants. forces (what is defined here) is indexed by
+    time index (rows) and plane index (cols).  
 
     Inputs:
         NumTimes         number of timesteps

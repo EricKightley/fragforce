@@ -32,10 +32,14 @@ axes_s, R_s, w_s, T_s = frag.evolve_solid(t0, t1, dt, a0, gammadot, JustAngles=T
 
 centers, normals, edge_crosses = frag.generate_triangulation(6)
 
-
 #################
 # Force functions
+
 # pick an arbitrary timepoint and compute the surface forces at that time
 k = 17
-farg, fonf, srf_centers_scaled, srf_areas_scaled = frag.surface_forces(axes[k], w[k], R[k], gammadot, p0, mu)
+farg, fonf, srf_centers_scaled, srf_areas_scaled = frag.surface_forces(axes[k], R[k], w[k], gammadot, p0, mu)
 
+# pick a plane and compute the fragmentation force against the plane
+pn = np.array([1.0, 0.0, 0.0])
+px = np.zeros(3)
+sample_force = frag.frag_force(axes[k], R[k], w[k], pn, px, gammadot, p0, mu )
