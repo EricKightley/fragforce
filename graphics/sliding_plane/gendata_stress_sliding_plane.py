@@ -28,13 +28,13 @@ scl = 1.22
 t1 = scl * t1
 dt = (scl * dt) / 2.0
 # get the rotations, axes and angular velocity
-axesV, RV, wV, T = frc.evolve(t0,t1,dt,a0,lam,mu,gammadot,Gamma)
+aV, RV, wV, T = frc.evolve(t0,t1,dt,a0,lam,mu,gammadot,Gamma)
 
 # use this to check the interval we picked
 #plt.plot(wV[:,2])
 #plt.show()
 
-M = 3
+M = 2
 scale = .9
 xcoords = np.linspace(-scale*a0[0],scale*a0[0],M)
 pxV = np.array( [np.array([x,0,0]) for x in xcoords ] )
@@ -47,31 +47,62 @@ force = np.zeros([M,M])
 
 RV = RV[0::K,:]
 wV = wV[0::K,:]
-axesV = axesV[0::K,:]
+aV = aV[0::K,:]
 
-forces = frc.frag_force(axesV, RV, wV, pnV, pxV, gammadot, p0, mu)
-forces_iter = np.zeros_like(forces)
+if ( np.shape(RV)[0] == M+1 ):
+    RV = RV[:-1]
+    wV = wV[:-1]
+    aV = aV[:-1]
 
 
-for i in range(np.shape(forces)[0]):
+forces_iter = np.zeros([M,M])
+
+for i in range(M):
     angles = RV[i]
-    a = axesV[i]
+    a = aV[i]
     w = wV[i]
+
     L = frc.py_set_L(angles, gammadot)
-    farg = frc.py_set_farg(a, w, L, p0, mu)
-    srf_centers_scaled, srf_areas_scaled, srf_normals_scaled = frc.py_scale_triangulations(a)
-    fonf = frc.py_set_force_facets(farg, srf_normals_scaled, srf_areas_scaled)
+    chi = frc.py_set_chi(a)
+    A = frc.py_set_A(a, w, L, chi)
+    farg = frc.py_set_farg(a, w, L, A, chi, p0, mu)
+    srf_centers_scaled, srf_areas_scaled, srf_normals_scaled = frc.py_scale_triangulation(a)
+    force_density = frc.py_set_force_density(farg, srf_normals_scaled)
+    force_facets = frc.py_set_force_facets(force_density, srf_areas_scaled)
+
     for j in range(M):
         pn = pnV[j]
         px = pxV[j]
-        forces_iter[i,j] = frc.py_set_force(a, fonf, srf_centers_scaled, pn, px)
+        #print(pn)
+        #print(px)
+        forces_iter[i,j] = frc.py_sum_forces(a, force_facets, srf_centers_scaled, pn, px)
+
+forces_V = frc.py_frag_force(aV, RV, wV, pnV, pxV, gammadot, p0, mu)
+
+print forces_iter
+print forces_V
 
 
 """
 for i in range(M):
+    angles = RV[i]
+    a = aV[i]
+    w = wV[i]
+    L = frc.py_set_L(angles, gammadot)
+    A = frc.py_set_A(w, a, L)
+    farg = frc.py_set_farg(A,a, w, L, p0, mu)
+    srf_centers_scaled, srf_areas_scaled, srf_normals_scaled = frc.py_scale_triangulations(a)
+    force_density = frc.py_set_force_density(farg, srf_normals_scaled)
+    fonf = frc.py_set_force_facets(force_density, srf_areas_scaled)
+    for j in range(M):
+        pn = pnV[j]
+        px = pxV[j]
+        forces_iter[i,j] = frc.py_sum_forces(a, fonf, srf_centers_scaled, pn, px)
+
+for i in range(M):
   R = RVs[i]
   w = wVs[i]
-  a = axesVs[i]
+  a = aVs[i]
   fonfV, cV = frc.set_fonfV(a, w, R, gammadot, p0, mu)
   size = np.shape(fonfV)[0]
   for j in range(M):

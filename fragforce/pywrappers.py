@@ -34,7 +34,7 @@ force.scale_triangulation.argtypes = [ctypes.c_int,
                                   ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                                   ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
 
-def py_scale_triangulations(a):
+def py_scale_triangulation(a):
     srf_centers_scaled = np.zeros_like(srf_centers_sph)
     srf_normals_scaled = np.zeros_like(srf_normals_sph)
     srf_areas_scaled = np.zeros(len(srf_crosses_sph))
@@ -83,24 +83,6 @@ def py_set_chi(axes):
     return chi
 
 
-# set_A
-force.set_A.restype = None
-force.set_A.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
-
-def py_set_A(w, a, L, X):
-  A = np.zeros((3,3))
-  force.set_A(np.ascontiguousarray(A),
-              np.ascontiguousarray(w),
-              np.ascontiguousarray(a),
-              np.ascontiguousarray(L),
-              np.ascontiguousarray(X))
-  return A
-
-
 # set_L
 force.set_L.restype = None
 force.set_L.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
@@ -119,24 +101,64 @@ def py_set_L(angles,gammadot):
     return L
 
 
+# set_A
+force.set_A.restype = None
+force.set_A.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
+
+def py_set_A(a, w, L, chi):
+  A = np.zeros((3,3))
+  force.set_A(np.ascontiguousarray(A),
+              np.ascontiguousarray(a),
+              np.ascontiguousarray(w),
+              np.ascontiguousarray(L),
+              np.ascontiguousarray(chi))
+  return A
+
+
 # set_farg
 force.set_farg.restype = None
 force.set_farg.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                           ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                           ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                            ctypes.c_double,
                            ctypes.c_double]
 
-def py_set_farg(a, w, L, p0, mu):
+def py_set_farg(a, w, L, A, chi, p0, mu):
     farg = np.zeros((3,3))
     force.set_farg(np.ascontiguousarray(farg),
                    np.ascontiguousarray(a),
                    np.ascontiguousarray(w),
                    np.ascontiguousarray(L),
+                   np.ascontiguousarray(A),
+                   np.ascontiguousarray(chi),
                    p0,
                    mu)
     return farg
+
+
+# set_force_density
+force.set_force_density.restype = None
+force.set_force_density.argtypes = [ctypes.c_int,
+                                    ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                                    ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                                    ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
+
+def py_set_force_density(farg, srf_normals_scaled):
+    force_density = np.zeros_like(srf_normals_scaled)
+    SIZE = int(len(srf_normals_scaled))
+
+    force.set_force_density(SIZE,
+                           np.ascontiguousarray(force_density), 
+                           np.ascontiguousarray(farg),
+                           np.ascontiguousarray(srf_normals_scaled))
+    return force_density
 
 
 # set_force_facets
@@ -144,17 +166,15 @@ force.set_force_facets.restype = None
 force.set_force_facets.argtypes = [ctypes.c_int,
                                   ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                                   ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                                  ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                                   ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
 
-def py_set_force_facets(farg, srf_normals_scaled, srf_areas_scaled):
-    force_on_facets = np.zeros_like(srf_normals_scaled)
-    SIZE = int(len(srf_normals_scaled))
+def py_set_force_facets(force_density, srf_areas_scaled):
+    SIZE = int(len(srf_areas_scaled))
+    force_on_facets = np.zeros_like(force_density)
 
     force.set_force_facets(SIZE,
                            np.ascontiguousarray(force_on_facets), 
-                           np.ascontiguousarray(farg),
-                           np.ascontiguousarray(srf_normals_scaled),
+                           np.ascontiguousarray(force_density),
                            np.ascontiguousarray(srf_areas_scaled))
     return force_on_facets
 
@@ -186,39 +206,18 @@ def py_correct_pndotf(f, c, pn, px):
                               np.ascontiguousarray(px))
     return nf
 
-
-# set_stress
-force.set_stress.restype = ctypes.c_double
-force.set_stress.argtypes = [ctypes.c_int, 
+# sum_forces
+force.sum_forces.restype = ctypes.c_double
+force.sum_forces.argtypes = [ctypes.c_int, 
                          ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                          ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                          ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                          ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                          ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
 
-def py_set_stress(a, fonfV, cV, pn, px):
+def py_sum_forces(a, fonfV, cV, pn, px):
     N = np.shape(fonfV)[0]
-    stress = force.set_stress(N,
-                              np.ascontiguousarray(a),
-                              np.ascontiguousarray(fonfV),
-                              np.ascontiguousarray(cV),
-                              np.ascontiguousarray(pn),
-                              np.ascontiguousarray(px))
-    return stress
-
-
-# set_force
-force.set_force.restype = ctypes.c_double
-force.set_force.argtypes = [ctypes.c_int, 
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
-
-def py_set_force(a, fonfV, cV, pn, px):
-    N = np.shape(fonfV)[0]
-    total_force = force.set_force(N, 
+    total_force = force.sum_forces(N, 
                                   np.ascontiguousarray(a),
                                   np.ascontiguousarray(fonfV),
                                   np.ascontiguousarray(cV),
@@ -226,123 +225,48 @@ def py_set_force(a, fonfV, cV, pn, px):
                                   np.ascontiguousarray(px))
     return total_force
 
+# frag_force
+force.frag_force.restype = None
+force.frag_force.argtypes = [ctypes.c_int,
+                             ctypes.c_int,
+                             ctypes.c_int,
+                             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                             ctypes.c_double,
+                             ctypes.c_double,
+                             ctypes.c_double]
 
-# set_force_Vectorized
-force.set_force_Vectorized.restype = None
-force.set_force_Vectorized.argtypes = [
-                         ctypes.c_int,
-                         ctypes.c_int,
-                         ctypes.c_int,
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ctypes.c_double,
-                         ctypes.c_double,
-                         ctypes.c_double,
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                         ndpointer(ctypes.c_double, flags="C_CONTIGUOUS") ]
-
-def py_set_force_Vectorized(aV, rotAngles, wV, pnV, pxV, gammadot, p0, mu):
-
-    [NumTimes, NumPlanes, NumFacets] = [1,1,1]
+def py_frag_force(aV, RV, wV, pnV, pxV, gammadot, p0, mu):
+    [NTimes, NPlanes, NFacets] = [1,1,1]
     if aV.ndim > 1: 
-        NumTimes = np.shape(aV)[0]
+        NTimes = np.shape(aV)[0]
     if pnV.ndim > 1:
-        NumPlanes = np.shape(pnV)[0]
+        NPlanes = np.shape(pnV)[0]
     if srf_centers_sph.ndim > 1:
-        NumFacets = np.shape(srf_centers_sph)[0]
-    
-    forces = np.zeros([NumTimes,NumPlanes])
-
-    fonfV = np.zeros([NumFacets,3])
-
-    force.set_force_Vectorized(
-        NumTimes,
-        NumPlanes,
-        NumFacets,
-        np.ascontiguousarray(fonfV),
+        NFacets = np.shape(srf_centers_sph)[0]
+    forces = np.zeros([NTimes,NPlanes])
+    force.frag_force(
+        NTimes,
+        NPlanes,
+        NFacets,
         np.ascontiguousarray(forces),
         np.ascontiguousarray(aV),
-        np.ascontiguousarray(rotAngles),
+        np.ascontiguousarray(RV),
         np.ascontiguousarray(wV),
         np.ascontiguousarray(pnV),
         np.ascontiguousarray(pxV),
-        gammadot,
-        p0,
-        mu,
         np.ascontiguousarray(srf_centers_sph),
         np.ascontiguousarray(srf_crosses_sph),
-        np.ascontiguousarray(srf_normals_sph))
-
+        np.ascontiguousarray(srf_normals_sph),
+        gammadot,
+        p0,
+        mu)
     return forces
-
-###############################################################################
-###############################################################################
-################               EXTERNAL FUNCTIONS                ##############
-###############################################################################
-###############################################################################
-
-def frag_force(aV, rotAngles, wV, pnV, pxV, gammadot, p0, mu):
-    """ Optimized for efficient computation of fragmentation forces at N different
-    time-points and M different times, where N,M >= 1 (so they can be 1). 
-
-    Inputs:
-        aV          np.array([N,3]), axes lengths at each time point 
-        rotAngles   np.array([N,2]), angles to construct R at each time point
-        wV          np.array([N,3]), angular velocity at each time point
-        pnV         np.array([M,3]), plane normals
-        pxV         np.array([M,3]), plane points
-        gammadot    float, shear rate
-        p0          float, external pressure
-        mu          float, matrix viscosity
-
-    Outputs:
-        forces      np.array([N,M]). Rows index time, columns index planes. 
-    """
-
-    return py_set_force_Vectorized(aV, rotAngles, wV, pnV, pxV, gammadot, p0, mu)
-    
- 
-def surface_forces(a, rotAngles, w, gammadot, p0, mu):
-    """ Compute the force on the facets of the surface triangulation. 
-    Wrapper for py_set_force_facets that takes more natural inputs and also
-    returns the centers of the facets to be used in the fragmentation force 
-    computations. Here fonfV can be thought of as the force vector heads 
-    and srf_centers_scaled as the force vector tails.
-
-    Note: computes the force (force_density * area of triangle) and not the
-          force density. Since the areas are also returned, one can recover
-          the force density by taking fonfV / srf_areas_scaled.
-
-    Inputs:
-        a          np.array(3)  ellipsoid axes lengths
-        w          np.array(3)  angular velocity
-        rotAngles  np.array(2)  cos theta, sin theta defining the rotation R. 
-                   Note: only a single rotation, not an array of rotations
-        gammadot   float  shear rate
-        p0         float  external pressure
-        mu         float  matrix viscosity
-
-    Outputs:
-        farg                  np.array([3,3])  farg (see force.c)
-        fonfV                 np.array([N,3])  force vector on each facet
-        srf_normals_scaled    np.array([N,3])  normals to facets
-        srf_centers_scaled    np.array([N,3])  centers of facets
-        srf_areas_scaled      np.array(N)      areas of facets
-
-    """
-    # set the velocity gradient in the body frame.
-    L = py_set_L(rotAngles,gammadot)
-    # scale the surface triangulation quantities
-    srf_centers_scaled, srf_areas_scaled, srf_normals_scaled = py_scale_triangulations(a)
-    # compute farg
-    farg = py_set_farg(a,w,L,p0,mu)
-    # get the force on the facets
-    fonfV = py_set_force_facets(farg, srf_normals_scaled, srf_areas_scaled)
-    return [farg, fonfV, srf_centers_scaled, srf_areas_scaled]
 

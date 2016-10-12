@@ -6,13 +6,15 @@ from .deformation import evolve_solid
 # surface triangulation functions
 from surface_triangulation import generate_triangulation
 
-# force functions
-from pywrappers import surface_forces
-from pywrappers import frag_force
-
 # temporary for debugging
-from pywrappers import py_set_force
-from pywrappers import py_set_farg
-from pywrappers import py_set_force_facets
+from pywrappers import py_scale_triangulation
+from pywrappers import py_set_chi
 from pywrappers import py_set_L
-from pywrappers import py_scale_triangulations
+from pywrappers import py_set_A
+from pywrappers import py_set_farg
+from pywrappers import py_set_force_density
+from pywrappers import py_set_force_facets
+from pywrappers import py_area_of_intersection
+from pywrappers import py_correct_pndotf
+from pywrappers import py_sum_forces
+from pywrappers import py_frag_force

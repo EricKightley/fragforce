@@ -6,7 +6,10 @@ double rd_recursion(double x, double y, double z, int n, int N);
 
 double rd_converge(double x, double y, double z);
 
-void set_chi(double lam[3], double a, double b, double c);
+void set_chi(double chi[3],
+             double a,
+             double b,
+             double c);
 
 
 // Scaling functions
@@ -17,52 +20,81 @@ void scale_edge(double axes[3]
                  double edge_normal_scaled[3],
                  double edge_center_scaled[3]);
 
-void scale_triangulation(int SIZE, double a[3], 
-                                   double srf_centers_scaled[SIZE][3],
-                                   double srf_areas_scaled[SIZE],
-                                   double srf_normals_scaled[SIZE][3],
-                                   double srf_centers_sph[SIZE][3], 
-                                   double srf_crosses_sph[SIZE][3],
-                                   double srf_normals_sph[SIZE][3]);
+void scale_triangulation(int NFacets, 
+                         double a[3], 
+                         double srf_centers_scaled[NFacets][3],
+                         double srf_areas_scaled[NFacets],
+                         double srf_normals_scaled[NFacets][3],
+                         double srf_centers_sph[NFacets][3], 
+                         double srf_crosses_sph[NFacets][3],
+                         double srf_normals_sph[NFacets][3]);
 
 
 // Force functions 
 
-void set_L(double L[3][3], double c, double s, double gammadot);
+void set_L(double L[3][3],
+           double c,
+           double s, 
+           double gammadot);
 
-void set_A(double A[3][3], double w[3], double a[3], double L[3][3], double X[3]);
+void set_A(double A[3][3], 
+           double a[3],
+           double w[3],
+           double L[3][3],
+           double chi[3]);
 
-void set_farg(double farg[3][3], double a[3], double w[3], double L[3][3], double p0, double mu);
+void set_farg(double farg[3][3],
+              double a[3],
+              double w[3],
+              double L[3][3],
+              double A[3][3],
+              double chi[3],
+              double p0,
+              double mu);
 
-void set_force_facets(int SIZE, double force_on_facets[SIZE][3], 
-                      double farg[3][3], double srf_normals_scaled[SIZE][3],
-                      double srf_areas_scaled[SIZE]);
+void set_force_density(int NFacets,
+                      double fdonf[NFacets][3],
+                      double farg[3][3], 
+                      double srf_normals_scaled[NFacets][3]);
+
+void set_force_facets(int NFacets, 
+                      double fonfV[NFacets][3], 
+                      double fdonf[NFacets][3], 
+                      double srf_areas_scaled[NFacets]);
+
+double area_of_intersection(double a[3],
+                            double pn_scaled[3],
+                            double px_scaled[3])
+
+double correct_pndotf(double fonf[3],
+                      double srf_center_scaled[3],
+                      double pn_scaled[3],
+                      double px_scaled[3]);
+
+double sum_forces(int NFacets,
+                  double a[3],
+                  double fonfV[NFacets][3],
+                  double srf_centers_scaled[NFacets][3],
+                  double pn_scaled[3], 
+                  double px_scaled[3]);
+
+void frag_force(
+        int NTimes, 
+        int NPlanes, 
+        int NFacets,
+        double fragforceV[NTimes][NPlanes],
+        double aV[NTimes][3], 
+        double RV[NTimes][2],
+        double wV[NTimes][3],
+        double pnV[NPlanes][3], 
+        double pxV[NPlanes][3],
+        double srf_centers_sph[NFacets][3],
+        double srf_crosses_sph[NFacets][3],
+        double srf_normals_sph[NFacets][3],
+        double gammadot,
+        double p0,
+        double mu);
 
 
-// Stress functions
 
-double area_of_intersection(double a[3], double edge_normal_scaled[3], double edge_center_scaled[3])
 
-double correct_pndotf(double f[3], double c[3], double pn[3], double px[3]);
-
-double set_stress(int N, double a[3], double fonfV[N][3], double cV[N][3], double pn[3], double px[3]);
-
-double set_force(int N, double a[3], double fonfV[N][3], double cV[N][3], double pn[3], double px[3]);
-
-void set_force_Vectorized(
-    int NumTimes,
-    int NumPlanes,
-    int NumFacets,
-    double forces[NumFacets][3],
-    double forces[NumTimes][NumPlanes],
-    double aV[NumTimes][3],
-    double rotAngles[NumTimes][2],
-    double wV[NumTimes][3],
-    double pnV[NumPlanes][3],
-    double pxV[NumPlanes][3],
-    double gammadot,
-    double p0,
-    double mu,
-    double srf_centers_sph[NumFacets][3],
-    double srf_crosses_sph[NumFacets][3],
-    double srf_normals_sph[NumFacets][3]);
