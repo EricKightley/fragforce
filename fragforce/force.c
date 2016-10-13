@@ -1,7 +1,9 @@
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include "force.h"
 
 /* ------------------------------------------------------------------------*/
 /*                      Elliptic Integral                                  */
@@ -30,7 +32,7 @@ double rd_recursion(double x,
 
     */
 {
-    double lam;
+    double lam = 0;
     if (n < N) {
         lam = sqrt(x*y) + sqrt(y*z) + sqrt(x*z);
         return ( 2.0 * rd_recursion( x + lam, y + lam, z + lam, n + 1, N) \
@@ -66,8 +68,8 @@ double rd_converge(double x,
     int MAX_IT = 8;           // Every iteration doubles the number of recursions.
     int it = 0;               // Count the iterations.
 
-    double Rd1;
-    double Rd2;
+    double Rd1 = 0;
+    double Rd2 = 0;
 
     while (error > tol && it <= MAX_IT) {
         Rd1 = rd_recursion(x,y,z,0,N);
@@ -122,8 +124,8 @@ void scale_edge(double axes[3],
     /* Scale a single edge from the sphere to the axes. Scales the normals and 
     centers. Currently not used and needs proper documentation. */
 {
-    int i;
-    double prenorm_edge_normal[3];
+    int i = 0;
+    double prenorm_edge_normal[3] = { 0 };
 
     for ( i = 0 ; i < 3 ; i++ ) {
         prenorm_edge_normal[i] = edge_normal_sph[i] * axes[i];
@@ -181,9 +183,9 @@ void scale_triangulation(int NFacets,
   double d1 = a[0];
   double d2 = a[1];
   double d3 = a[2];
-  int i;
+  int i = 0;
 
-  double pnr0, pnr1, pnr2, sc, ar0, ar1, ar2;
+  double pnr0 = 0, pnr1 = 0, pnr2 = 0, sc = 0, ar0 = 0, ar1 = 0, ar2 = 0;
   for ( i = 0 ; i < NFacets ; i++ ) {
     srf_centers_scaled[i][0] = d1 * srf_centers_sph[i][0];
     srf_centers_scaled[i][1] = d2 * srf_centers_sph[i][1];
@@ -276,16 +278,16 @@ void set_A(double A[3][3],
     // to change this is the force arrow plots - they look wrong if we don't and
     // right if we do. For transparency we use a new vector ww = - w
 
-    int iter;
-    double ww[3];
+    int iter = 0;
+    double ww[3] = { 0 };
     for (iter = 0 ; iter < 3 ; iter++) {
         ww[iter] = -w[iter];
     }
 
 
     double aa[3] = { a[0]*a[0] , a[1]*a[1] , a[2]*a[2] };
-    double Xp[3];
-    double Xpp[3];
+    double Xp[3] = { 0 };
+    double Xpp[3] = { 0 };
 
     Xp[0] = (chi[2] - chi[1]) / (aa[1] - aa[2]);
     Xp[1] = (chi[0] - chi[2]) / (aa[2] - aa[0]);
@@ -312,7 +314,10 @@ void set_A(double A[3][3],
         Xpp[0] = chi[1];
     }
 
-    double E[3][3], W[3][3];
+    double E[3][3];
+    memset(E, 0, sizeof E);
+    double W[3][3];
+    memset(W, 0, sizeof W);
 
     int i,j;
     for ( i = 0 ; i < 3 ; i++ ) {
@@ -323,7 +328,7 @@ void set_A(double A[3][3],
     }
 
 
-    double a01n, a02n, a10n, a12n, a20n, a21n;
+    double a01n = 0, a02n = 0, a10n = 0, a12n = 0, a20n = 0, a21n = 0;
     a01n = chi[1] * E[0][1] - aa[0] * Xp[2] * (ww[2] - W[0][1]);
     a02n = chi[2] * E[0][2] + aa[0] * Xp[1] * (ww[1] + W[0][2]);
     a10n = chi[0] * E[1][0] + aa[1] * Xp[2] * (ww[2] + W[1][0]);
@@ -331,7 +336,7 @@ void set_A(double A[3][3],
     a20n = chi[0] * E[2][0] - aa[2] * Xp[1] * (ww[1] - W[2][0]);
     a21n = chi[1] * E[1][2] + aa[2] * Xp[0] * (ww[0] + W[2][1]);
 
-    double a01d, a02d, a10d, a12d, a20d, a21d;
+    double a01d = 0, a02d = 0, a10d = 0, a12d = 0, a20d = 0, a21d = 0;
     a01d = 2 * (aa[0] * chi[0] + aa[1] * chi[1]) * Xp[2];
     a10d = a01d;
     a02d = 2 * (aa[0] * chi[0] + aa[2] * chi[2]) * Xp[1];
@@ -485,7 +490,7 @@ double area_of_intersection(double a[3],
         area                   area of intersection 
     */
 {
-    double k, kt, novera, area;
+    double k = 0, kt = 0, novera = 0, area = 0;
     k = fabs(pn_scaled[0] * px_scaled[0] + \
              pn_scaled[1] * px_scaled[1] + \
              pn_scaled[2] * px_scaled[2]);
@@ -529,17 +534,17 @@ double correct_pndotf(double fonf[3],
     */
 {
     //Compute the initial dot product
-    double nf;
+    double nf = 0;
     int i;
     for ( i = 0 ; i < 3 ; i++ ) {
-        nf = nf + pn_scaled[i] * fonf[i];
+        nf += pn_scaled[i] * fonf[i];
     }
     // if it's 0, exit and return 0
     if (nf == 0.0) return nf;
     // compute pn dot c-px
-    double ncx;
+    double ncx = 0;
     for ( i = 0 ; i < 3 ; i++ ) {
-        ncx = ncx + pn_scaled[i] * ( srf_center_scaled[i] - px_scaled[i] );
+        ncx += pn_scaled[i] * ( srf_center_scaled[i] - px_scaled[i] );
     }
     double t = - ncx / nf;
     // treat the cases for t
@@ -580,7 +585,7 @@ double sum_forces(int NFacets,
 {
     double aoi = area_of_intersection(a, pn_scaled, px_scaled);
     if ( aoi <= 0) return 0; //the the plane does not intersect
-    double fonf[3], c[3], nf, total_force;
+    double fonf[3] = {0}, c[3] = {0}, nf = 0, total_force = 0;
     int i, j;
     for ( i = 0 ; i < NFacets ; i++ )
     {
@@ -590,13 +595,9 @@ double sum_forces(int NFacets,
             c[j] = srf_centers_scaled[i][j];
         }
         nf = correct_pndotf(fonf, c, pn_scaled, px_scaled);
-        total_force = total_force + nf;
+        total_force += nf;
     }
     return total_force;
-    // return (total_force * 2.0) / 2.0;
-    // No idea why the hell it is happening but returning total_force gives
-    // 0 - somehow doing something to it other than multiplying by 1 gets the
-    // correct answer...
 }
 
 
@@ -618,23 +619,29 @@ void frag_force(
         double mu)
 {
 
-    double a[3];
-    double c,s;
-    double w[3];
+    double a[3] = {0};
+    double c = 0 ,s = 0;
+    double w[3] = {0};
 
-    double chi[3];
+    double chi[3] = {0};
     double L[3][3];
+    memset(L, 0, sizeof L);
     double A[3][3];
+    memset(A, 0, sizeof A);
     double farg[3][3];
+    memset(farg, 0, sizeof farg);
 
+    //VLA's can't be initialized without explicitly assigning the values.
+    //Since initializing everything to 0 was kind of overkill anyway I 
+    //am going to leave these ones for now. 
     double srf_centers_scaled[NFacets][3];
     double srf_areas_scaled[NFacets];
     double srf_normals_scaled[NFacets][3];
     double fdonfV[NFacets][3];
     double fonfV[NFacets][3];
 
-    double pn[3];
-    double px[3];
+    double pn[3] = {0};
+    double px[3] = {0};
 
 
     int TimeStep, PlaneStep;
@@ -655,14 +662,6 @@ void frag_force(
         set_A(A, a, w, L, chi);
         set_farg(farg, a, w, L, A, chi, p0, mu);
         
-        /*
-        int nt;
-        printf("farg (c) = \n");
-        for ( nt = 0 ; nt < 3 ; nt++ )
-        {
-        printf("%e %e %e\n", farg[nt][0], farg[nt][1], farg[nt][2]);
-        }
-        */ 
         scale_triangulation(NFacets, 
                             a,
                             srf_centers_scaled,
@@ -673,7 +672,6 @@ void frag_force(
                             srf_normals_sph);
         set_force_density(NFacets, fdonfV, farg, srf_normals_scaled);
         set_force_facets(NFacets, fonfV, fdonfV, srf_areas_scaled);
-        //printf("%e %e %e \n", fonfV[17][0], fonfV[17][1], fonfV[17][2]);
 
         for (PlaneStep = 0 ; PlaneStep < NPlanes ; PlaneStep++ )
         {
@@ -683,8 +681,6 @@ void frag_force(
             px[0] = pxV[PlaneStep][0];
             px[1] = pxV[PlaneStep][1];
             px[2] = pxV[PlaneStep][2];
-            //printf("%e %e %e \n", pn[0], pn[1], pn[2]);
-            //printf("%e %e %e \n", px[0], px[1], px[2]);
             
             fragforceV[TimeStep][PlaneStep] = sum_forces(NFacets, a, fonfV, srf_centers_scaled, pn, px);
         }

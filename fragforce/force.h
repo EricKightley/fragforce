@@ -14,7 +14,7 @@ void set_chi(double chi[3],
 
 // Scaling functions
 
-void scale_edge(double axes[3]
+void scale_edge(double axes[3],
                  double edge_normal_sph[3], 
                  double edge_center_sph[3], 
                  double edge_normal_scaled[3],
@@ -64,7 +64,7 @@ void set_force_facets(int NFacets,
 
 double area_of_intersection(double a[3],
                             double pn_scaled[3],
-                            double px_scaled[3])
+                            double px_scaled[3]);
 
 double correct_pndotf(double fonf[3],
                       double srf_center_scaled[3],
