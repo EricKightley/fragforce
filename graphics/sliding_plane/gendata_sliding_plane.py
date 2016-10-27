@@ -2,6 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import fragforce as frc
+import pickle
+import csv
 
 # set the constants
 
@@ -34,7 +36,7 @@ aV, RV, wV, T = frc.evolve(t0,t1,dt,a0,lam,mu,gammadot,Gamma)
 #plt.plot(wV[:,2])
 #plt.show()
 
-M = 2
+M = 150
 scale = .9
 xcoords = np.linspace(-scale*a0[0],scale*a0[0],M)
 pxV = np.array( [np.array([x,0,0]) for x in xcoords ] )
@@ -55,8 +57,24 @@ if ( np.shape(RV)[0] == M+1 ):
     aV = aV[:-1]
 
 
-forces_iter = np.zeros([M,M])
+forces = frc.py_frag_force(aV, RV, wV, pnV, pxV, gammadot, p0, mu)
+pickle.dump([forces, xcoords, T],open("force_data.p","wb"))
 
+
+ofile = open("forces.csv","w")
+writer = csv.writer(ofile)
+for row in forces:
+  writer.writerow( [val for val in row] )
+ofile.close()
+ 
+ofile = open("bounds.csv","w")
+writer = csv.writer(ofile)
+writer.writerow( [ xcoords[0], xcoords[-1], T[0], T[-1] ] )
+ofile.close()
+
+
+"""
+forces_iter = np.zeros([M,M])
 for i in range(M):
     angles = RV[i]
     a = aV[i]
@@ -73,17 +91,11 @@ for i in range(M):
     for j in range(M):
         pn = pnV[j]
         px = pxV[j]
-        #print(pn)
-        #print(px)
         forces_iter[i,j] = frc.py_sum_forces(a, force_facets, srf_centers_scaled, pn, px)
 
-forces_V = frc.py_frag_force(aV, RV, wV, pnV, pxV, gammadot, p0, mu)
-
-print forces_iter
-print forces_V
 
 
-"""
+
 for i in range(M):
     angles = RV[i]
     a = aV[i]
