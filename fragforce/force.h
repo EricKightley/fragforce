@@ -14,11 +14,12 @@ void set_chi(double chi[3],
 
 // Scaling functions
 
-void scale_edge(double axes[3],
-                 double edge_normal_sph[3], 
-                 double edge_center_sph[3], 
-                 double edge_normal_scaled[3],
-                 double edge_center_scaled[3]);
+void scale_plane(double a_initial[3],
+                 double a_current[3],
+                 double pn_initial[3], 
+                 double px_initial[3], 
+                 double pn_scaled[3],
+                 double px_scaled[3]);
 
 void scale_triangulation(int NFacets, 
                          double a[3], 
@@ -93,7 +94,8 @@ void frag_force(
         double srf_normals_sph[NFacets][3],
         double gammadot,
         double p0,
-        double mu);
+        double mu,
+        int scale_planes_bool);
 
 
 

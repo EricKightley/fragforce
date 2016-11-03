@@ -23,23 +23,44 @@ a0 = np.array([180., 160., 120.])        # micrometer
 # compute the integration parameters
 t0, t1, dt, tau, cap = frag.set_integration_params(a0, lam, mu, gammadot, Gamma)
 # solve for the motion of the ellipsoid over time
-axes, R, w, T = frag.evolve(t0, t1, dt, a0, lam, mu, gammadot, Gamma, JustAngles=True)
+aV, RV, wV, T = frag.evolve(t0, t1, dt, a0, lam, mu, gammadot, Gamma, JustAngles=True)
 # solve for the motion of the ellipsoid treating it as a solid
-axes_s, R_s, w_s, T_s = frag.evolve_solid(t0, t1, dt, a0, gammadot, JustAngles=True)
-
-#################################
-# Surface Triangulation functions
-
-centers, normals, edge_crosses = frag.generate_triangulation(6)
+aVsolid, RVsolid, wVsolid, Tsolid = frag.evolve_solid(t0, t1, dt, a0, gammadot, JustAngles=True)
 
 #################
 # Force functions
 
-# pick an arbitrary timepoint and compute the surface forces at that time
+# choose a time index
 k = 17
-farg, fonf, srf_centers_scaled, srf_areas_scaled = frag.surface_forces(axes[k], R[k], w[k], gammadot, p0, mu)
+a = aV[k]
+w = wV[k]
+R = RV[k]
 
+# obtain the scaled surface triangulations
+srf_centers_scaled, srf_areas_scaled, srf_normals_scaled = frag.py_scale_triangulation(a)
+# set L
+L = frag.py_set_L(R[0],R[1],gammadot)
+# set chi
+chi = frag.py_set_chi(a)
+# set A
+A = frag.py_set_A(a, w, L, chi)
+# set the force argument
+farg = frag.py_set_farg(a, w, L, A, chi, p0, mu)
+# compute force density
+fdonfV = frag.py_set_force_density(farg, srf_normals_scaled)
+# compute the force on the facets
+fonfV = frag.py_set_force_facets(fdonfV, srf_areas_scaled)
 # pick a plane and compute the fragmentation force against the plane
 pn = np.array([1.0, 0.0, 0.0])
 px = np.zeros(3)
-sample_force = frag.frag_force(axes[k], R[k], w[k], pn, px, gammadot, p0, mu )
+# sum the forces
+total_force = frag.py_sum_forces(a, fonfV, srf_centers_scaled, pn, px)
+
+# wrapper for the above in C
+sample_force = frag.py_frag_force(a, R, w, pn, px, gammadot, p0, mu, False)
+# do it again but scale the edge (won't change anything here)
+sample_force_scaled = frag.py_frag_force(a, R, w, pn, px, gammadot, p0, mu, True)
+# now do it over all of the times and a bunch of edges
+pnV = np.random.rand(150,3)
+pxV = np.random.rand(150,3) * aV[0]
+forcesV = frag.py_frag_force(aV, RV, wV, pnV, pxV, gammadot, p0, mu, True)

@@ -1,13 +1,14 @@
 # deformation functions
-from .deformation import set_integration_params
-from .deformation import evolve
-from .deformation import evolve_solid
+from deformation import set_integration_params
+from deformation import evolve
+from deformation import evolve_solid
 
 # surface triangulation functions
 from surface_triangulation import generate_triangulation
 
 # temporary for debugging
 from pywrappers import py_scale_triangulation
+from pywrappers import py_scale_plane
 from pywrappers import py_set_chi
 from pywrappers import py_set_L
 from pywrappers import py_set_A

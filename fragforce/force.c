@@ -116,29 +116,49 @@ void set_chi(double chi[3],
 /* ------------------------------------------------------------------------*/
 
 
-void scale_edge(double axes[3],
-                double edge_normal_sph[3], 
-                double edge_center_sph[3], 
-                double edge_normal_scaled[3],
-                double edge_center_scaled[3])
-    /* Scale a single edge from the sphere to the axes. Scales the normals and 
-    centers. Currently not used and needs proper documentation. */
+void scale_plane(double a_initial[3],
+                 double a_current[3],
+                 double pn_initial[3], 
+                 double px_initial[3], 
+                 double pn_scaled[3],
+                 double px_scaled[3])
+    /* Rescales the plane normal and interior point given the original axes
+    lengths for which the quantities were defined and the current axes lengths.
+    This is needed when we specify the plane normals and interior points using
+    the minimum spanning tree on the bacterial centers of mass for our
+    application, because we assume the bacteria move wrt eachother as the 
+    ellipsoid changes shape.
+
+    Inputs:
+        a_initial           axes lengths at time = 0
+        a_current           axes lengths at current time
+        pn_initial             normal to intersecting plane, time = 0
+        px_initial             point in intersecting plane, time = 0
+        pn_scaled              modified 
+        px_scaled              modified
+
+    Modifies:
+        pn_scaled              normal to intersecting plane
+        px_scaled              point in intersecting plane
+        
+    */
 {
     int i = 0;
-    double prenorm_edge_normal[3] = { 0 };
+    double scale;
 
     for ( i = 0 ; i < 3 ; i++ ) {
-        prenorm_edge_normal[i] = edge_normal_sph[i] * axes[i];
-        edge_center_scaled[i] = edge_center_sph[i] * axes[i];      
+        scale = a_current[i] / a_initial[i];
+        pn_scaled[i] = pn_initial[i] * scale;
+        px_scaled[i] = px_initial[i] * scale;      
     }
 
     // set normalization constant 
     double normalization = sqrt( 
-        prenorm_edge_normal[0] * prenorm_edge_normal[0] + 
-        prenorm_edge_normal[1] * prenorm_edge_normal[1] + 
-        prenorm_edge_normal[2] * prenorm_edge_normal[2] );
+        pn_scaled[0] * pn_scaled[0] + 
+        pn_scaled[1] * pn_scaled[1] + 
+        pn_scaled[2] * pn_scaled[2] );
     for ( i = 0 ; i < 3 ; i++ ) {
-        edge_normal_scaled[i] = prenorm_edge_normal[i] / normalization;
+        pn_scaled[i] = pn_scaled[i] / normalization;
     }
 }
 
@@ -164,7 +184,7 @@ void scale_triangulation(int NFacets,
     all hard coded here. 
 
     Inputs: 
-        NFacets                number of facets in the triangulation
+        nfacets                number of facets in the triangulation
         a                      axes lengths
         srf_centers_scaled     modified
         srf_areas_scaled       modified
@@ -173,39 +193,39 @@ void scale_triangulation(int NFacets,
         srf_crosses_sph        cross-product of the facet edges, sphere
         srf_normals_sph        normals to facets, sphere 
 
-    Modifies:
+    modifies:
         srf_centers_scaled     facet centers scaled to ellipsoid
         srf_areas_scaled       facet areas scaled to ellipsoid
         srf_normals_scaled     facet normals scaled to ellipsoid
     
     */
 {
-  double d1 = a[0];
-  double d2 = a[1];
-  double d3 = a[2];
-  int i = 0;
+    double d1 = a[0];
+    double d2 = a[1];
+    double d3 = a[2];
+    int i = 0;
 
-  double pnr0 = 0, pnr1 = 0, pnr2 = 0, sc = 0, ar0 = 0, ar1 = 0, ar2 = 0;
-  for ( i = 0 ; i < NFacets ; i++ ) {
-    srf_centers_scaled[i][0] = d1 * srf_centers_sph[i][0];
-    srf_centers_scaled[i][1] = d2 * srf_centers_sph[i][1];
-    srf_centers_scaled[i][2] = d3 * srf_centers_sph[i][2];
+    double pnr0 = 0, pnr1 = 0, pnr2 = 0, sc = 0, ar0 = 0, ar1 = 0, ar2 = 0;
+    for ( i = 0 ; i < NFacets ; i++ ) {
+        srf_centers_scaled[i][0] = d1 * srf_centers_sph[i][0];
+        srf_centers_scaled[i][1] = d2 * srf_centers_sph[i][1];
+        srf_centers_scaled[i][2] = d3 * srf_centers_sph[i][2];
 
-    ar0 = d2 * d3 * srf_crosses_sph[i][0];
-    ar1 = d1 * d3 * srf_crosses_sph[i][1];
-    ar2 = d1 * d2 * srf_crosses_sph[i][2];
+        ar0 = d2 * d3 * srf_crosses_sph[i][0];
+        ar1 = d1 * d3 * srf_crosses_sph[i][1];
+        ar2 = d1 * d2 * srf_crosses_sph[i][2];
 
-    srf_areas_scaled[i]  = 0.5 * sqrt(ar0 * ar0 + ar1 * ar1 + ar2 * ar2);
-    pnr0 = srf_normals_sph[i][0] / d1;
-    pnr1 = srf_normals_sph[i][1] / d2;
-    pnr2 = srf_normals_sph[i][2] / d3;
+        srf_areas_scaled[i]  = 0.5 * sqrt(ar0 * ar0 + ar1 * ar1 + ar2 * ar2);
+        pnr0 = srf_normals_sph[i][0] / d1;
+        pnr1 = srf_normals_sph[i][1] / d2;
+        pnr2 = srf_normals_sph[i][2] / d3;
 
-    // Normalize
-    sc = 1.0 / sqrt(pnr0*pnr0 + pnr1*pnr1 + pnr2*pnr2);
-    srf_normals_scaled[i][0] = sc * pnr0;
-    srf_normals_scaled[i][1] = sc * pnr1;
-    srf_normals_scaled[i][2] = sc * pnr2;
-  }
+        // Normalize
+        sc = 1.0 / sqrt(pnr0*pnr0 + pnr1*pnr1 + pnr2*pnr2);
+        srf_normals_scaled[i][0] = sc * pnr0;
+        srf_normals_scaled[i][1] = sc * pnr1;
+        srf_normals_scaled[i][2] = sc * pnr2;
+    }
 }
 
 
@@ -616,7 +636,35 @@ void frag_force(
         double srf_normals_sph[NFacets][3],
         double gammadot,
         double p0,
-        double mu)
+        double mu,
+        int scale_planes_bool)
+
+    /* Computes the fragmentation force over the evolution of a droplet, for
+    a set of intersecting planes. The intersecting planes can be scaled
+    according to the shape of the droplet if desired.  
+
+    Inputs:
+        NTimes                 number of time steps in the shape evolution
+        NPlanes                number of intersecting planes
+        NFacets                number of facets in the triangulation
+        fragforceV             modified
+        aV                     axes lengths at each time point
+        RV                     0,1 and 1,0 entry of rotation matrix at each time
+        wV                     angular velocity at each time point
+        pnV                    normals to intersecting planes
+        pxV                    interior points to intersecting planes
+        srf_centers_sph        facet centers, sphere
+        srf_crosses_sph        cross-product of the facet edges, sphere
+        srf_normals_sph        normals to facets, sphere 
+        gammadot               shear rate
+        p0                     external pressure 
+        mu                     matrix viscosity
+        scale_planes_bool      whether or not to scale the planes
+
+    Modifies:
+        fragforceV             fragmentation force, [i,j]th entry is force at
+                               ith time w.r.t. jth plane. 
+    */
 {
 
     double a[3] = {0};
@@ -637,14 +685,22 @@ void frag_force(
     double srf_centers_scaled[NFacets][3];
     double srf_areas_scaled[NFacets];
     double srf_normals_scaled[NFacets][3];
-    double fdonfV[NFacets][3];
+    //double fdonfV[NFacets][3];
     double fonfV[NFacets][3];
 
-    double pn[3] = {0};
-    double px[3] = {0};
+    double pn_scaled[3] = {0};
+    double px_scaled[3] = {0};
 
 
     int TimeStep, PlaneStep;
+
+    // initialize the quantities for scaling the planes
+    double a_initial[3];
+    double pn[3] = {0};
+    double px[3] = {0};
+    a_initial[0] = aV[0][0];
+    a_initial[1] = aV[0][1];
+    a_initial[2] = aV[0][2];
 
     for ( TimeStep = 0 ; TimeStep < NTimes ; TimeStep++ )
     {
@@ -670,19 +726,37 @@ void frag_force(
                             srf_centers_sph, 
                             srf_crosses_sph,
                             srf_normals_sph);
-        set_force_density(NFacets, fdonfV, farg, srf_normals_scaled);
-        set_force_facets(NFacets, fonfV, fdonfV, srf_areas_scaled);
+        //normal use would be:
+        //    set_force_density(NFacets, fdonfV, farg, srf_normals_scaled);
+        // but we are going to save space and use fonfV only, first setting
+        // fdonfV and then overwriting it with fonfv.
+        set_force_density(NFacets, fonfV, farg, srf_normals_scaled);
+        set_force_facets(NFacets, fonfV, fonfV, srf_areas_scaled);
 
         for (PlaneStep = 0 ; PlaneStep < NPlanes ; PlaneStep++ )
         {
-            pn[0] = pnV[PlaneStep][0];
-            pn[1] = pnV[PlaneStep][1];
-            pn[2] = pnV[PlaneStep][2];
-            px[0] = pxV[PlaneStep][0];
-            px[1] = pxV[PlaneStep][1];
-            px[2] = pxV[PlaneStep][2];
-            
-            fragforceV[TimeStep][PlaneStep] = sum_forces(NFacets, a, fonfV, srf_centers_scaled, pn, px);
+            if ( scale_planes_bool ) {
+                // then scale the plane quantities
+                pn[0] = pnV[PlaneStep][0];
+                pn[1] = pnV[PlaneStep][1];
+                pn[2] = pnV[PlaneStep][2];
+                px[0] = pxV[PlaneStep][0];
+                px[1] = pxV[PlaneStep][1];
+                px[2] = pxV[PlaneStep][2];
+                scale_plane(a_initial, a, pn, px, pn_scaled, px_scaled);
+            }
+            else {
+                // then don't scale them
+                pn_scaled[0] = pnV[PlaneStep][0];
+                pn_scaled[1] = pnV[PlaneStep][1];
+                pn_scaled[2] = pnV[PlaneStep][2];
+                px_scaled[0] = pxV[PlaneStep][0];
+                px_scaled[1] = pxV[PlaneStep][1];
+                px_scaled[2] = pxV[PlaneStep][2];
+            }
+
+            fragforceV[TimeStep][PlaneStep] = sum_forces(NFacets, a, fonfV, srf_centers_scaled,
+                                                         pn_scaled, px_scaled);
         }
     }
 }
