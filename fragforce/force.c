@@ -755,6 +755,14 @@ void frag_force(
                 px_scaled[2] = pxV[PlaneStep][2];
             }
 
+        // make sure the plane normal is unit length
+        double scale = 1 / sqrt( pn_scaled[0] * pn_scaled[0] +
+                                 pn_scaled[1] * pn_scaled[1] + 
+                                 pn_scaled[2] * pn_scaled[2] );
+        pn_scaled[0] *= scale;
+        pn_scaled[1] *= scale;
+        pn_scaled[2] *= scale;
+
             fragforceV[TimeStep][PlaneStep] = sum_forces(NFacets, a, fonfV, srf_centers_scaled,
                                                          pn_scaled, px_scaled);
         }
