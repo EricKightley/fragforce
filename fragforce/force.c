@@ -589,7 +589,8 @@ double sum_forces(int NFacets,
                   double px_scaled[3])
 
     /* Sum the components of fonfV acting against the plane; in other words,
-    compute the integral of the force density over the surface.
+    compute the integral of the force density over the surface. Normalizes
+    the plane normal. 
 
     Inputs
         NFacets                number of facets in the triangulation
@@ -603,6 +604,15 @@ double sum_forces(int NFacets,
         total_force            surface force (magnitude) acting against plane
     */
 {
+    // make sure the plane normal is unit length
+    double scale = 1 / sqrt( pn_scaled[0] * pn_scaled[0] +
+                             pn_scaled[1] * pn_scaled[1] + 
+                             pn_scaled[2] * pn_scaled[2] );
+    pn_scaled[0] *= scale;
+    pn_scaled[1] *= scale;
+    pn_scaled[2] *= scale;
+    
+    // get the area of intersection to check if plane intersects
     double aoi = area_of_intersection(a, pn_scaled, px_scaled);
     if ( aoi <= 0) return 0; //the the plane does not intersect
     double fonf[3] = {0}, c[3] = {0}, nf = 0, total_force = 0;
@@ -755,13 +765,6 @@ void frag_force(
                 px_scaled[2] = pxV[PlaneStep][2];
             }
 
-        // make sure the plane normal is unit length
-        double scale = 1 / sqrt( pn_scaled[0] * pn_scaled[0] +
-                                 pn_scaled[1] * pn_scaled[1] + 
-                                 pn_scaled[2] * pn_scaled[2] );
-        pn_scaled[0] *= scale;
-        pn_scaled[1] *= scale;
-        pn_scaled[2] *= scale;
 
             fragforceV[TimeStep][PlaneStep] = sum_forces(NFacets, a, fonfV, srf_centers_scaled,
                                                          pn_scaled, px_scaled);
