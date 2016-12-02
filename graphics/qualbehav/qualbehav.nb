@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[    199926,       3734]
-NotebookOptionsPosition[    197029,       3633]
-NotebookOutlinePosition[    197355,       3648]
-CellTagsIndexPosition[    197312,       3645]
+NotebookDataLength[    199511,       3724]
+NotebookOptionsPosition[    196681,       3626]
+NotebookOutlinePosition[    197014,       3641]
+CellTagsIndexPosition[    196971,       3638]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -1056,7 +1056,7 @@ Cell[BoxData[{
       RowBox[{"{", 
        RowBox[{"i", ",", "1", ",", 
         RowBox[{"Length", "[", "fargsPre", "]"}]}], "}"}]}], "]"}]}], ";"}], 
-  "\n"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{"rotations", "=", 
    RowBox[{"Table", "[", 
@@ -3564,8 +3564,6 @@ Cell["Generate the Plots", "Subsection",
    3.683912595143722*^9, 3.683912641144454*^9}, {3.683912861838674*^9, 
    3.683912890904437*^9}}],
 
-Cell[CellGroupData[{
-
 Cell[BoxData[{
  RowBox[{
   RowBox[{"forceMagsI", "=", 
@@ -3582,57 +3580,52 @@ Cell[BoxData[{
    RowBox[{"{", 
     RowBox[{"False", ",", "True", ",", "True", ",", "True"}], "}"}]}], 
   ";"}], "\[IndentingNewLine]", 
- RowBox[{"Export", "[", 
-  RowBox[{"\"\<qualbehav.png\>\"", ",", "\[IndentingNewLine]", 
-   RowBox[{"GraphicsGrid", "[", 
-    RowBox[{
-     RowBox[{"{", 
-      RowBox[{
-       RowBox[{"Table", "[", 
-        RowBox[{
-         RowBox[{"GenPlotI", "[", 
-          RowBox[{"i", ",", 
-           RowBox[{"forceMagsI", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], ",", 
-           RowBox[{"bools", "[", 
-            RowBox[{"[", "i", "]"}], "]"}]}], "]"}], ",", 
-         RowBox[{"{", 
-          RowBox[{"i", ",", "1", ",", "4"}], "}"}]}], "]"}], ",", 
-       RowBox[{"Table", "[", 
-        RowBox[{
-         RowBox[{"GenPlotII", "[", 
-          RowBox[{"i", ",", 
-           RowBox[{"forceMagsII", "[", 
-            RowBox[{"[", "i", "]"}], "]"}]}], "]"}], ",", 
-         RowBox[{"{", 
-          RowBox[{"i", ",", "1", ",", "4"}], "}"}]}], "]"}]}], "}"}], ",", 
-     RowBox[{"Spacings", "\[Rule]", "0"}], ",", 
-     RowBox[{"Frame", "\[Rule]", "All"}]}], "]"}], ",", "\[IndentingNewLine]", 
-   RowBox[{"Background", "\[Rule]", "None"}], ",", 
-   RowBox[{"ImageSize", "\[Rule]", "exportSize"}]}], 
-  "]"}], "\[IndentingNewLine]"}], "Input",
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{"\"\<qualbehav.png\>\"", ",", "\[IndentingNewLine]", 
+    RowBox[{"GraphicsGrid", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"Table", "[", 
+         RowBox[{
+          RowBox[{"GenPlotI", "[", 
+           RowBox[{"i", ",", 
+            RowBox[{"forceMagsI", "[", 
+             RowBox[{"[", "i", "]"}], "]"}], ",", 
+            RowBox[{"bools", "[", 
+             RowBox[{"[", "i", "]"}], "]"}]}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "1", ",", "4"}], "}"}]}], "]"}], ",", 
+        RowBox[{"Table", "[", 
+         RowBox[{
+          RowBox[{"GenPlotII", "[", 
+           RowBox[{"i", ",", 
+            RowBox[{"forceMagsII", "[", 
+             RowBox[{"[", "i", "]"}], "]"}]}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "1", ",", "4"}], "}"}]}], "]"}]}], "}"}], ",", 
+      RowBox[{"Spacings", "\[Rule]", "0"}], ",", 
+      RowBox[{"Frame", "\[Rule]", "All"}]}], "]"}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{"Background", "\[Rule]", "None"}], ",", 
+    RowBox[{"ImageSize", "\[Rule]", "exportSize"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]"}], "Input",
  CellChangeTimes->CompressedData["
-1:eJwdxUEoQ2EAB/CXWKkpsbKmRH1rGxllwnE7rRjlIqWlVyMvmdZq0nLUTOKN
-SCnsbadXhtbKvNqIm7JIo2lRo8bFAZHWfP/v8OvXwruHXRUcxzVQONErPe56
-3q1PK5k8Fl4+JvfoTW4yhSd8px4cNae8+Fslr+PZn/ltnAy0xrEu0pXA8lh3
-CodNG2kshK6vsPZiOYON8dssdnYcPuC/r+Azbi6RAlYG3sg+/cavMuCheqMF
-60IjfZhYKu04V93IVry2TVxwRdmG2FIJj56flHE5l64K02d8v1q8o98iuL+O
-6HGRF9vxov3SjBdEWw+O5dus+D4ZGMRzd2ds4TjoxMrnKvvAz79K9HGNuohN
-GkdNhO7ozLJrZWkNTx+pRfwPsvfECg==
-  "]],
-
-Cell[BoxData["\<\"qualbehav.png\"\>"], "Output",
- CellChangeTimes->{3.683979817093254*^9, 3.6839799390844707`*^9, 
-  3.683980073543963*^9, 3.683983102795828*^9, 3.683983242639393*^9, 
-  3.683983400578744*^9, 3.683983697064125*^9, 3.683983844728794*^9, 
-  3.683984000676634*^9, 3.683984207874584*^9, 3.6839843716326303`*^9, 
-  3.683984491661126*^9, 3.683984618379382*^9, 3.6839846967974367`*^9}]
-}, Open  ]]
+1:eJwdxU8oQwEAB+AlVmokdtgmot7aRkaZcNjh7bRiUy5SWlqNvGRaq4nlojRD
+bET+FPa202JorcyrjaYcxJo0a1rUqNnFAZHWvN87fH2NRnO/qYTH44lZONRF
+P+1Z8uTzcjyDqdeP0X32ejMxhkds5xbsU0as+JvvX8OTP9NbOOxoCmKJtz2E
+/UMdEexRrEcx5b67waLYYhzLg/dJbGg9TuG/L+cLbigQWcz0vhMH7Ak7X4b7
+auQqLHEPdGNCVarF6fJabsaq2cBZk49bFlgo4MHLsyIupqNlHvYJ268I70o3
+CdxTTUhxzuhqwfPaKyWedWk6cSDTTOLHsEOPpx4uuKlTpwEznyvcR3bjG80+
+LBTksEKoq/Cy69qS3FV+ehWPnwhc+Fqc2FbP5MnbyqUdHJur8+BDvZr7H0Li
+08w=
+  "]]
 }, Open  ]]
 }, Open  ]]
 },
 WindowSize->{959, 1148},
-WindowMargins->{{1, Automatic}, {1, 26}},
+WindowMargins->{{2, Automatic}, {1, Automatic}},
 FrontEndVersion->"11.0 for Linux x86 (64-bit) (July 28, 2016)",
 StyleDefinitions->"Default.nb"
 ]
@@ -3649,7 +3642,7 @@ CellTagsIndex->{}
 Notebook[{
 Cell[CellGroupData[{
 Cell[580, 22, 97, 1, 65, "Section"],
-Cell[680, 25, 959, 14, 77, "Text"]
+Cell[680, 25, 959, 14, 143, "Text"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[1676, 44, 5373, 73, 65, "Section"],
@@ -3658,10 +3651,10 @@ Cell[7074, 121, 5376, 73, 45, "Subsection"],
 Cell[12453, 196, 5768, 84, 55, "Text"],
 Cell[18224, 282, 6103, 96, 136, "Input"],
 Cell[CellGroupData[{
-Cell[24352, 382, 6206, 99, 31, "Item"],
+Cell[24352, 382, 6206, 99, 51, "Item"],
 Cell[30561, 483, 5938, 89, 31, "Item"],
-Cell[36502, 574, 6138, 88, 51, "Item"],
-Cell[42643, 664, 6343, 96, 53, "Item"],
+Cell[36502, 574, 6138, 88, 91, "Item"],
+Cell[42643, 664, 6343, 96, 93, "Item"],
 Cell[48989, 762, 6179, 98, 31, "Item"]
 }, Open  ]]
 }, Open  ]],
@@ -3730,10 +3723,7 @@ Cell[187251, 3439, 1302, 39, 100, "Input"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[188602, 3484, 5897, 80, 44, "Subsection"],
-Cell[CellGroupData[{
-Cell[194524, 3568, 2068, 53, 188, "Input"],
-Cell[196595, 3623, 394, 5, 32, "Output"]
-}, Open  ]]
+Cell[194502, 3566, 2151, 56, 188, "Input"]
 }, Open  ]]
 }, Open  ]]
 }

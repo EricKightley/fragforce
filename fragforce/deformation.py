@@ -397,9 +397,9 @@ def integrate_dgdt(t0,t1,dt,a0,lam,mu,gammadot,Gamma):
     G0 = np.diag(1/a0**2)
     G0v = tens2vec(G0)
 
-    T = np.arange(t0,t1,dt)
+    T = np.arange(t0,t1+dt,dt)
     args = (L, lam, mu, Gamma)
-    Yvec = odeint(dgdt, G0v, T, args=args)
+    Yvec = odeint(dgdt, G0v, T, args=args, rtol=1e-6)
     Y = np.array([vec2tens(y) for y in Yvec])
     return [Y,T]
 
@@ -552,13 +552,19 @@ def set_integration_params(a0, lam, mu, gammadot, Gamma):
         cap         capillary number
     
     """
-    rad0 = np.prod(a0)**(1./3)                                                  
-    tau = lam * mu * rad0 / Gamma                                               
-    cap = lam * mu * gammadot * rad0 / Gamma                                    
-                                                                              
-    t0 = 0                                                                      
-    t1 =  200 * lam / cap *  (4e-9 / Gamma)                                     
-    dt = (t1 - t0) / 1000.
+    rad0 = np.prod(a0)**(1./3)
+    tau = lam * mu * rad0 / Gamma
+    cap = lam * mu * gammadot * rad0 / Gamma
+    t0 = 0
+    t1 = 2 * (10 / gammadot)
+    dt = (t1-t0)/150
+    #rad0 = np.prod(a0)**(1./3)                                                  
+    #tau = lam * mu * rad0 / Gamma                                               
+    #cap = lam * mu * gammadot * rad0 / Gamma                                    
+    #                                                                          
+    #t0 = 0                                                                      
+    #t1 =  200 * lam / cap *  (4e-9 / Gamma)                                     
+    #dt = (t1 - t0) / 1000.
     return [t0,t1,dt,tau,cap]
 
 

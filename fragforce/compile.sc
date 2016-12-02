@@ -1,4 +1,4 @@
 #!/bin/bash
-gcc -c -fPIC -Wall -Werror -std=c11 force.c -O3
-gcc -shared -o force.so force.c -fPIC -O3
- 
+gcc -c -O3 -fPIC -Wall -Werror -std=c11 force.c
+gcc -shared -fPIC -O3 -o force.so force.o
+
