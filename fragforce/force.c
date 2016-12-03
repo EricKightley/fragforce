@@ -5,6 +5,238 @@
 #include <math.h>
 #include "force.h"
 
+
+/* ------------------------------------------------------------------------*/
+/*                      DE Transform Quadrature                            */
+/* ------------------------------------------------------------------------*/
+
+/*  intdeiini and intdei are modified implementations of the double-exponential 
+    transform quadrature method from this page:
+
+        http://www.kurims.kyoto-u.ac.jp/~ooura/intde.html
+  
+    The licensing on these functions, which can be found in the readme.txt of
+    the package on the website above, is:
+        
+    "copyright
+         Copyright(C) 1996 Takuya OOURA (email: ooura@mmm.t.u-tokyo.ac.jp).
+         You may use, copy, modify this code for any purpose and 
+         without fee. You may distribute this ORIGINAL package."
+
+*/
+
+void intdeiini(int lenaw,
+               double tiny,
+               double eps,
+               double *aw)
+{
+    /* ---- adjustable parameter ---- */
+    double efs = 0.1, hoff = 11.0;
+    /* ------------------------------ */
+    int noff, nk, k, j;
+    double pi4, tinyln, epsln, h0, ehp, ehm, h, t, ep, em, xp, xm, 
+        wp, wm;
+    
+    pi4 = atan(1.0);
+    tinyln = -log(tiny);
+    epsln = 1 - log(efs * eps);
+    h0 = hoff / epsln;
+    ehp = exp(h0);
+    ehm = 1 / ehp;
+    aw[2] = eps;
+    aw[3] = exp(-ehm * epsln);
+    aw[4] = sqrt(efs * eps);
+    noff = 5;
+    aw[noff] = 1;
+    aw[noff + 1] = 4 * h0;
+    aw[noff + 2] = 2 * pi4 * h0;
+    h = 2;
+    nk = 0;
+    k = noff + 6;
+    do {
+        t = h * 0.5;
+        do {
+            em = exp(h0 * t);
+            ep = pi4 * em;
+            em = pi4 / em;
+            j = k;
+            do {
+                xp = exp(ep - em);
+                xm = 1 / xp;
+                wp = xp * ((ep + em) * h0);
+                wm = xm * ((ep + em) * h0);
+                aw[j] = xm;
+                aw[j + 1] = xp;
+                aw[j + 2] = xm * (4 * h0);
+                aw[j + 3] = xp * (4 * h0);
+                aw[j + 4] = wm;
+                aw[j + 5] = wp;
+                ep *= ehp;
+                em *= ehm;
+                j += 6;
+            } while (ep < tinyln && j <= lenaw - 6);
+            t += h;
+            k += nk;
+        } while (t < 1);
+        h *= 0.5;
+        if (nk == 0) {
+            if (j > lenaw - 12) j -= 6;
+            nk = j - noff;
+            k += nk;
+            aw[1] = nk;
+        }
+    } while (2 * k - noff - 6 <= lenaw);
+    aw[0] = k - 6;
+}
+
+
+void intdei(double (*func)(double, double *),
+            double *funcpars,
+            double a,
+            double *aw,
+            double *integral, 
+            double *err)
+{
+    int noff, lenawm, nk, k, j, jtmp, jm, m, klim;
+    double epsh, ir, fp, fm, errt, errh, errd, h, iback, irback;
+    
+    noff = 5;
+    lenawm = (int) (aw[0] + 0.5);
+    nk = (int) (aw[1] + 0.5);
+    epsh = aw[4];
+    *integral = (*func)(a + aw[noff], funcpars);
+    ir = *integral * aw[noff + 1];
+    *integral *= aw[noff + 2];
+    *err = fabs(*integral);
+    k = nk + noff;
+    j = noff;
+    do {
+        j += 6;
+        fm = (*func)(a + aw[j], funcpars);
+        fp = (*func)(a + aw[j + 1], funcpars);
+        ir += fm * aw[j + 2] + fp * aw[j + 3];
+        fm *= aw[j + 4];
+        fp *= aw[j + 5];
+        *integral += fm + fp;
+        *err += fabs(fm) + fabs(fp);
+    } while (aw[j] > epsh && j < k);
+    errt = *err * aw[3];
+    errh = *err * epsh;
+    errd = 1 + 2 * errh;
+    jtmp = j;
+    while (fabs(fm) > errt && j < k) {
+        j += 6;
+        fm = (*func)(a + aw[j], funcpars);
+        ir += fm * aw[j + 2];
+        fm *= aw[j + 4];
+        *integral += fm;
+    }
+    jm = j;
+    j = jtmp;
+    while (fabs(fp) > errt && j < k) {
+        j += 6;
+        fp = (*func)(a + aw[j + 1], funcpars);
+        ir += fp * aw[j + 3];
+        fp *= aw[j + 5];
+        *integral += fp;
+    }
+    if (j < jm) jm = j;
+    jm -= noff + 6;
+    h = 1;
+    m = 1;
+    klim = k + nk;
+    while (errd > errh && klim <= lenawm) {
+        iback = *integral;
+        irback = ir;
+        do {
+            jtmp = k + jm;
+            for (j = k + 6; j <= jtmp; j += 6) {
+                fm = (*func)(a + aw[j], funcpars);
+                fp = (*func)(a + aw[j + 1], funcpars);
+                ir += fm * aw[j + 2] + fp * aw[j + 3];
+                *integral += fm * aw[j + 4] + fp * aw[j + 5];
+            }
+            k += nk;
+            j = jtmp;
+            do {
+                j += 6;
+                fm = (*func)(a + aw[j], funcpars);
+                ir += fm * aw[j + 2];
+                fm *= aw[j + 4];
+                *integral += fm;
+            } while (fabs(fm) > errt && j < k);
+            j = jtmp;
+            do {
+                j += 6;
+                fp = (*func)(a + aw[j + 1], funcpars);
+                ir += fp * aw[j + 3];
+                fp *= aw[j + 5];
+                *integral += fp;
+            } while (fabs(fp) > errt && j < k);
+        } while (k < klim);
+        errd = h * (fabs(*integral - 2 * iback) + fabs(ir - 2 * irback));
+        h *= 0.5;
+        m *= 2;
+        klim = 2 * klim - noff;
+    }
+    *integral *= h;
+    if (errd > errh) {
+        *err = -errd * m;
+    } else {
+        *err *= aw[2] * m;
+    }
+}
+
+
+double hypergeo3(double t,
+                 double pV[6])
+{
+    /* The integrand to a hypergeometric integral, of the form
+
+        f(t) = (t + z1)^(-b1) * (t + z2)^(-b2) * (t + z3)^(-b3).
+
+    Used in the integration routine integrate_hypergeo3. 
+
+    Inputs:
+        t                      function variable
+        pV                     zV and bV parameters (note the signs on the bi):
+                               pV = [z1, z2, z3, b1, b2, b3]
+
+    Returns:
+        f(t)                   f as above
+
+    */
+    double out = pow(t+pV[0], -pV[3]) * pow(t+pV[1], -pV[4]) * pow(t+pV[2], -pV[5]);
+    return out;
+}
+
+
+double integrate_hypergeo3(double pV[6])
+{
+    /* Integrates the hypergeometric function hypergeo3 using the DE Transform
+    quadrature method implemented in intdei. Note that the quadrature function
+    is a black box here. 
+
+    Inputs:
+        pV                     zV and bV parameters (note the signs on the bi):
+                               pV = [z1, z2, z3, b1, b2, b3]
+
+    Returns:
+        integration_result     integral from 0 to infinity of hypergeo3 with
+                               pars pV.
+
+    */
+
+    double tiny = 1.0e-307;
+    int lenaw = 8000;
+    double aw[lenaw], integration_result, err;
+
+    intdeiini(lenaw, tiny, 1.0e-10, aw);
+    intdei(hypergeo3, pV, 0.0, aw, &integration_result, &err);
+
+    return integration_result;
+}
+
 /* ------------------------------------------------------------------------*/
 /*                      Elliptic Integral                                  */
 /* ------------------------------------------------------------------------*/

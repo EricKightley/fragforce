@@ -1,3 +1,22 @@
+// DE Transform Quadrature
+
+void intdeiini(int lenaw, 
+               double tiny,
+               double eps,
+               double *aw);
+
+void intdei(double (*func)(double, double *),
+            double *funcpars,
+            double a,
+            double *aw,
+            double *integral, 
+            double *err);
+
+
+double hypergeo3(double t,
+                 double pV[6]);
+
+double integrate_hypergeo3(double pV[6]);
 
 
 // Elliptic Integral functions

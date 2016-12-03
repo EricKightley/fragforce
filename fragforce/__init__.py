@@ -1,3 +1,5 @@
+
+
 # deformation functions
 from deformation import set_integration_params
 from deformation import evolve
@@ -7,6 +9,7 @@ from deformation import evolve_solid
 from surface_triangulation import generate_triangulation
 
 # temporary for debugging
+from pywrappers import py_integrate_hypergeo3
 from pywrappers import py_scale_triangulation
 from pywrappers import py_scale_plane
 from pywrappers import py_set_chi

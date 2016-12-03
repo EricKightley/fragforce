@@ -23,6 +23,16 @@ srf_centers_sph, srf_normals_sph, srf_crosses_sph = \
 # The following are python wrappers for c functions defined in force.c. 
 # See force.c for documentation.
 
+# integrate_hypergeo3
+force.integrate_hypergeo3.restype = ctypes.c_double
+force.integrate_hypergeo3.argtypes = [ndpointer(ctypes.c_double, flags = "C_CONTIGUOUS")]
+
+def py_integrate_hypergeo3(pV):
+    integration_result = force.integrate_hypergeo3(pV)
+    return integration_result
+
+
+
 # scale_triangulation
 force.scale_triangulation.restype = None
 force.scale_triangulation.argtypes = [ctypes.c_int,
