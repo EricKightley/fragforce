@@ -6,13 +6,13 @@ lam = 50                                 # viscosity ratio, unitless
 mu_si = 8.953e-4                         # matrix viscosity,  Pa s=(N s)/(m ^2)
 gammadot_si = 10.                        # shear rate, 1/s
 Gamma_si = 4.1e-9                        # interfacial tension, N/m
-p0_si = 0.0                              # external pressure, Pa = N / m^2
+#p0_si = 0.0                              # external pressure, Pa = N / m^2
 
 # ----- Unit Conversions -----
 gammadot = gammadot_si                   # 1/s
 mu = mu_si * 10**(-6)                    # microNewton s / micrometer^2
 Gamma = Gamma_si                         # microNewton / micrometer
-p0 = p0_si * 10**(-6)                    # microNewton / micrometer^2
+#p0 = p0_si * 10**(-6)                    # microNewton / micrometer^2
 
 # ----- Set Initial Axes -----
 a0 = np.array([180., 160., 120.])        # micrometer
@@ -30,22 +30,20 @@ aVsolid, RVsolid, wVsolid, Tsolid = frag.evolve_solid(t0, t1, dt, a0, gammadot, 
 #################
 # Force functions
 
+
 # choose a time index
 k = 17
 a = aV[k]
 w = wV[k]
 R = RV[k]
 
+
+# compute a hypergeometric integral
+hyperint = frag.py_integrate_hypergeo3(a[0]**2, a[1]**2, a[2]**2, 3/2., 3/2., 1/2.)
 # obtain the scaled surface triangulations
 srf_centers_scaled, srf_areas_scaled, srf_normals_scaled = frag.py_scale_triangulation(a)
-# set L
-L = frag.py_set_L(R[0],R[1],gammadot)
-# set chi
-chi = frag.py_set_chi(a)
-# set A
-A = frag.py_set_A(a, w, L, chi)
 # set the force argument
-farg = frag.py_set_farg(a, w, L, A, chi, p0, mu)
+farg = frag.py_set_farg(a, R, w, gammadot, mu)
 # compute force density
 fdonfV = frag.py_set_force_density(farg, srf_normals_scaled)
 # compute the force on the facets
@@ -57,10 +55,10 @@ px = np.zeros(3)
 total_force = frag.py_sum_forces(a, fonfV, srf_centers_scaled, pn, px)
 
 # wrapper for the above in C
-sample_force = frag.py_frag_force(a, R, w, pn, px, gammadot, p0, mu, False)
+sample_force = frag.py_frag_force(a, R, w, pn, px, gammadot, mu, False)
 # do it again but scale the edge (won't change anything here)
-sample_force_scaled = frag.py_frag_force(a, R, w, pn, px, gammadot, p0, mu, True)
+sample_force_scaled = frag.py_frag_force(a, R, w, pn, px, gammadot, mu, True)
 # now do it over all of the times and a bunch of edges
 pnV = np.random.rand(150,3)
 pxV = np.random.rand(150,3) * aV[0]
-forcesV = frag.py_frag_force(aV, RV, wV, pnV, pxV, gammadot, p0, mu, True)
+forcesV = frag.py_frag_force(aV, RV, wV, pnV, pxV, gammadot, mu, True)

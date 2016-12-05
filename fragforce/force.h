@@ -16,19 +16,12 @@ void intdei(double (*func)(double, double *),
 double hypergeo3(double t,
                  double pV[6]);
 
-double integrate_hypergeo3(double pV[6]);
-
-
-// Elliptic Integral functions
-
-double rd_recursion(double x, double y, double z, int n, int N);
-
-double rd_converge(double x, double y, double z);
-
-void set_chi(double chi[3],
-             double a,
-             double b,
-             double c);
+double integrate_hypergeo3(double z1,
+                           double z2,
+                           double z3,
+                           double b1,
+                           double b2,
+                           double b3);
 
 
 // Scaling functions
@@ -52,24 +45,11 @@ void scale_triangulation(int NFacets,
 
 // Force functions 
 
-void set_L(double L[3][3],
-           double c,
-           double s, 
-           double gammadot);
-
-void set_A(double A[3][3], 
-           double a[3],
-           double w[3],
-           double L[3][3],
-           double chi[3]);
-
 void set_farg(double farg[3][3],
               double a[3],
-              double w[3],
-              double L[3][3],
-              double A[3][3],
-              double chi[3],
-              double p0,
+              double R[2],
+              double w,
+              double gammadot,
               double mu);
 
 void set_force_density(int NFacets,
@@ -105,14 +85,13 @@ void frag_force(
         double fragforceV[NTimes][NPlanes],
         double aV[NTimes][3], 
         double RV[NTimes][2],
-        double wV[NTimes][3],
+        double wV[NTimes],
         double pnV[NPlanes][3], 
         double pxV[NPlanes][3],
         double srf_centers_sph[NFacets][3],
         double srf_crosses_sph[NFacets][3],
         double srf_normals_sph[NFacets][3],
         double gammadot,
-        double p0,
         double mu,
         int scale_planes_bool);
 

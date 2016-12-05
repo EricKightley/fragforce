@@ -211,21 +211,26 @@ double hypergeo3(double t,
 }
 
 
-double integrate_hypergeo3(double pV[6])
+double integrate_hypergeo3(double z1,
+                           double z2,
+                           double z3,
+                           double b1,
+                           double b2,
+                           double b3)
 {
     /* Integrates the hypergeometric function hypergeo3 using the DE Transform
     quadrature method implemented in intdei. Note that the quadrature function
     is a black box here. 
 
-    Inputs:
-        pV                     zV and bV parameters (note the signs on the bi):
-                               pV = [z1, z2, z3, b1, b2, b3]
+    Inputs:                    see hypergeo3
 
     Returns:
         integration_result     integral from 0 to infinity of hypergeo3 with
                                pars pV.
 
     */
+
+    double pV[6] = {z1, z2, z3, b1, b2, b3};
 
     double tiny = 1.0e-307;
     int lenaw = 8000;
@@ -236,112 +241,6 @@ double integrate_hypergeo3(double pV[6])
 
     return integration_result;
 }
-
-/* ------------------------------------------------------------------------*/
-/*                      Elliptic Integral                                  */
-/* ------------------------------------------------------------------------*/
-
-double rd_recursion(double x,
-                    double y,
-                    double z,
-                    int n,
-                    int N)
-
-    /* Used to compute the elliptic integral in Blaser. This can be done using a
-    recursion relation which is implemented here. The recursion is of the form
-    R_d(x_n) = R_d(x_{n+1}) + f(x_n), where R_d(x_n) goes to 0 as x_n goes to 
-    infinity. Thus we compute the recusion some N times and then call the last 
-    one 0. Note that the final integral needs to be scaled by 2/3. This is 
-    recursive function. 
-
-    Inputs:
-        x,y,z                  parameters of integral
-        n                      current step
-        N                      maximum steps
-
-    Outputs:
-        R_d(x_N)               double, result after N iterations
-
-    */
-{
-    double lam = 0;
-    if (n < N) {
-        lam = sqrt(x*y) + sqrt(y*z) + sqrt(x*z);
-        return ( 2.0 * rd_recursion( x + lam, y + lam, z + lam, n + 1, N) \
-                 + 3. / (sqrt(z) * (z +lam)) );
-    }
-    else {
-        lam = sqrt(x*y) + sqrt(y*z) + sqrt(x*z);
-        return( 3.0 / ( sqrt( z ) * ( z + lam ) ) );
-    }
-}
-
-
-double rd_converge(double x,
-                   double y,
-                   double z)
-    /* Implements rd_recursion until we reach acceptable relative error.
-    This means we compute rd_recursion (which is recursive N times) for some
-    N and then again for 2N, and if the relative difference between these
-    isn't small enough, we do it again for 4N, and so on, until it converges
-    or until we reach the maximum permissible iterations. 
-
-    Inputs:
-        x,y,x                  parameters of integral
-
-    Outputs:
-        R_d(X_M)               result after M iterations
-
-    */
-{
-    int N = 20;
-    double tol = 10E-10;
-    double error = tol + 1;   // Make sure we trigger the first while call.
-    int MAX_IT = 8;           // Every iteration doubles the number of recursions.
-    int it = 0;               // Count the iterations.
-
-    double Rd1 = 0;
-    double Rd2 = 0;
-
-    while (error > tol && it <= MAX_IT) {
-        Rd1 = rd_recursion(x,y,z,0,N);
-        Rd2 = rd_recursion(x,y,z,0,2*N);
-        error = fabs( (Rd1 - Rd2) / Rd2 );
-        N *= 2;
-        it += 1;
-    }
-
-    // Exit the program with error message if integral does not converge. 
-    if (it > MAX_IT) {
-        printf("Error: rd_converge failed to converge after %i iterations", MAX_IT * N);
-        exit(0);
-    }
-
-    return Rd2;
-}
-
-void set_chi(double chi[3], 
-             double a,
-             double b,
-             double c)
-    /* Computes the three elliptic integrals using the recursion relation. 
-    Note the scaling factor.
-
-    Inputs:
-        chi                    modified
-        a,b,c                  parameters of the integral
-
-    Modifies:
-        chi                    three elliptic integrals                                  
-
-    */
-{
-    double scale = 2.0 / 3.0;
-    chi[0] = scale * rd_converge(c*c,b*b,a*a);
-    chi[1] = scale * rd_converge(a*a,c*c,b*b);
-    chi[2] = scale * rd_converge(b*b,a*a,c*c);
-}
-
 
 /* ------------------------------------------------------------------------*/
 /*                     Scaling Functions                                   */
@@ -501,158 +400,74 @@ void set_L(double L[3][3], double c, double s, double gammadot)
 }
 
 
-void set_A(double A[3][3], 
-           double a[3],
-           double w[3],
-           double L[3][3],
-           double chi[3])
-    /* Sets the matrix A defined in equation 18 in Blaser. Entries are hard-
-    coded. Notice that in each case the sums collapse into a single term; I 
-    worked these out by hand and coded them in here. Tests check out with the
-    explicit summation representation coded in Mathematica. 
-
-    Inputs:
-        A                      modified
-        a                      axes lengths
-        w                      angular velocity
-        L                      velocity gradient, ellipsoid frame
-        chi                    elliptic integrals
-
-    Modifies:
-        A                      matrix A in equation 18 of Blaser
-
-  */
-
-{
-
-    // We need to change the sign on the angular velocity. I can't find where I
-    // made the error; maybe there's a typo in Blaser. The reason I know we need
-    // to change this is the force arrow plots - they look wrong if we don't and
-    // right if we do. For transparency we use a new vector ww = - w
-
-    int iter = 0;
-    double ww[3] = { 0 };
-    for (iter = 0 ; iter < 3 ; iter++) {
-        ww[iter] = -w[iter];
-    }
-
-
-    double aa[3] = { a[0]*a[0] , a[1]*a[1] , a[2]*a[2] };
-    double Xp[3] = { 0 };
-    double Xpp[3] = { 0 };
-
-    Xp[0] = (chi[2] - chi[1]) / (aa[1] - aa[2]);
-    Xp[1] = (chi[0] - chi[2]) / (aa[2] - aa[0]);
-    Xp[2] = (chi[1] - chi[0]) / (aa[0] - aa[1]);
-
-    Xpp[0] = ( aa[1] * chi[1] - aa[2] * chi[2] ) / (aa[1] - aa[2]);
-    Xpp[1] = ( aa[2] * chi[2] - aa[0] * chi[0] ) / (aa[2] - aa[0]);
-    Xpp[2] = ( aa[0] * chi[0] - aa[1] * chi[1] ) / (aa[0] - aa[1]);
-
-    // So this is great: aa[0], aa[1], and aa[2] can be the same, which gives
-    // a division by 0. When this happens you get a nan for the Xp and Xpp
-    // above and then no error shows up later so you have no clue what
-    // happened. I tried some limits a[2] -> a[1] to see what Xpp[0] is, and I
-    // get that it should be X[1] which is equal to X[2]. I'm just going to
-    // assume that when aa[1] == aa[2] then X[2] == X[1] and so I can just
-    // set Xp[0] to 0 and Xpp[0] to X[2]. Note that due to the specifics of
-    // my application of this code, I only ever get repeated axes in the 
-    // first and second (and never zeroth) indices, so I've only fixed these
-    // here. There's more of this hacky garbage later on when we set the
-    // entries to A. 
-
-    if ( aa[1] == aa[2] ) {
-        Xp[0] = 0;
-        Xpp[0] = chi[1];
-    }
-
-    double E[3][3];
-    memset(E, 0, sizeof E);
-    double W[3][3];
-    memset(W, 0, sizeof W);
-
-    int i,j;
-    for ( i = 0 ; i < 3 ; i++ ) {
-        for (j = 0 ; j < 3 ; j++ ) {  
-            E[i][j] = 0.5 * ( L[i][j] + L[j][i] );
-            W[i][j] = 0.5 * ( L[i][j] - L[j][i] );
-        }
-    }
-
-
-    double a01n = 0, a02n = 0, a10n = 0, a12n = 0, a20n = 0, a21n = 0;
-    a01n = chi[1] * E[0][1] - aa[0] * Xp[2] * (ww[2] - W[0][1]);
-    a02n = chi[2] * E[0][2] + aa[0] * Xp[1] * (ww[1] + W[0][2]);
-    a10n = chi[0] * E[1][0] + aa[1] * Xp[2] * (ww[2] + W[1][0]);
-    a12n = chi[2] * E[1][2] - aa[1] * Xp[0] * (ww[0] - W[1][2]);
-    a20n = chi[0] * E[2][0] - aa[2] * Xp[1] * (ww[1] - W[2][0]);
-    a21n = chi[1] * E[1][2] + aa[2] * Xp[0] * (ww[0] + W[2][1]);
-
-    double a01d = 0, a02d = 0, a10d = 0, a12d = 0, a20d = 0, a21d = 0;
-    a01d = 2 * (aa[0] * chi[0] + aa[1] * chi[1]) * Xp[2];
-    a10d = a01d;
-    a02d = 2 * (aa[0] * chi[0] + aa[2] * chi[2]) * Xp[1];
-    a20d = a02d;
-    a12d = 2 * (aa[1] * chi[1] + aa[2] * chi[2]) * Xp[0];
-    a21d = a12d;
-
-    double dd = 6*(Xpp[0]*Xpp[1] + Xpp[0]*Xpp[2] + Xpp[1]*Xpp[2]);
-    double a00n = 2 * Xpp[0] * E[0][0] - Xpp[1] * E[1][1] - Xpp[2] * E[2][2];
-    double a11n = 2 * Xpp[1] * E[1][1] - Xpp[0] * E[0][0] - Xpp[2] * E[2][2];
-    double a22n = 2 * Xpp[2] * E[2][2] - Xpp[1] * E[1][1] - Xpp[0] * E[0][0];
-
-    A[0][0] = a00n / dd;
-    A[1][1] = a11n / dd;
-    A[2][2] = a22n / dd;
-    A[0][1] = a01n / a01d;
-    A[0][2] = a02n / a02d;
-    A[1][0] = a10n / a10d;
-    A[1][2] = a12n / a12d;
-    A[2][0] = a20n / a20d;
-    A[2][1] = a21n / a21d;
-     
-    //if a[12] == a[1] then we STILL get some horrible divisions by 0 in here.
-    //I think that when this happens the A entry should be 0. Maybe check this
-    //later. 
-
-    for ( i = 0 ; i < 3 ; i++ ) {
-        for ( j = 0 ; j < 3 ; j++ ) {
-            if ( isnan( A[i][j] ) ) {
-                A[i][j] = 0;
-            }
-        }
-    }
-
-}
-
-
 void set_farg(double farg[3][3],
               double a[3],
-              double w[3],
-              double L[3][3],
-              double A[3][3],
-              double chi[3],
-              double p0,
+              double R[2],
+              double w,
+              double gammadot,
               double mu)
-    /* Computes the matrix in equation 17 in blaser (the result of adding 
-    everything in those parentheses together).
-
-    Inputs:
-        farg                   modified
-        a                      axes at the current time
-        w                      angular velocity at the current time
-        L                      velocity gradient, ellipsoid frame
-        p0                     external pressure 
-        mu                     matrix viscosity
-
-    Modifies:
-        farg                   argument to the force function
-
+    /* Constructs the matrix that is the quantity in the parentheses of the 
+    RHS of equation 17 in Blaser; i.e., f = farg dot n, assuming p0 is 0.
+    The algorithm is 
     */
-{ 
+{
+    double z[3];
+    z[0] = a[0] * a[0];
+    z[1] = a[1] * a[1];
+    z[2] = a[2] * a[2];
+
+    double b0 = 3.0/2.0;
+    double b1 = 0.5;
+
+    double chi[3];
+    chi[0] = integrate_hypergeo3(z[0], z[1], z[2], b0, b1, b1);
+    chi[1] = integrate_hypergeo3(z[1], z[0], z[2], b0, b1, b1);
+    chi[2] = integrate_hypergeo3(z[2], z[1], z[0], b0, b1, b1);
+
+    double xi[3];
+    xi[0] = - integrate_hypergeo3(z[1], z[2], z[2], b0, b0, b1);
+    xi[1] = - integrate_hypergeo3(z[2], z[0], z[1], b0, b0, b1);
+    xi[2] = - integrate_hypergeo3(z[0], z[1], z[2], b0, b0, b1);
+
+    double ct, st;
+    ct = R[0];
+    st = R[1];
+
+    double beta[3];
+    beta[0] = (gammadot - 2 * w) / 4;
+    beta[1] = gammadot * (ct*ct - st*st);
+    beta[2] = gammadot * ct * st / 6;
+
+    double eta[3];
+    eta[0] = z[1] * xi[0] + chi[2];
+    eta[1] = z[0] * xi[1] + chi[2];
+    eta[2] = z[0] * xi[2] + chi[1];
+
+    double dd, d0, d1, d2;
+    dd = eta[2] * eta[1] + eta[2] * eta[0] + eta[1] * eta[0];
+    d0 = beta[2] * (   - eta[1] - 2 * eta[0] ) / dd;
+    d1 = beta[2] * ( 2 * eta[1] +     eta[0] ) / dd;
+    d2 = -(d0 + d1);
+
+    double offdd, a01, a10;
+    offdd = z[0] * chi[0] + z[1] * chi[1];
+    a01 = ( beta[0] * z[0] - beta[1] * chi[1] / xi[2]) / offdd;
+    a10 = (-beta[0] * z[1] - beta[1] * chi[0] / xi[2]) / offdd;
+
+    double A[3][3];
+    A[0][0] = d0;
+    A[0][1] = a01;
+    A[0][2] = 0;
+    A[1][0] = a10;
+    A[1][1] = d1;
+    A[1][2] = 0;
+    A[2][0] = 0;
+    A[2][1] = 0;
+    A[2][2] = d2;
+
     double c = ( 8.0 * mu ) / ( a[0] * a[1] * a[2] );
-    double diag = - p0 - 4.0 * mu * ( chi[0] * A[0][0] + chi[1] * A[1][1] + \
-                                      chi[2] * A[2][2]);
+    double diag = - 4.0 * mu * ( chi[0] * A[0][0] + chi[1] * A[1][1] + \
+                                 chi[2] * A[2][2]);
     int i,j;
     for ( i = 0 ; i < 3 ; i++ ) {
         for ( j = 0 ; j < 3 ; j++ ) {
@@ -870,14 +685,13 @@ void frag_force(
         double fragforceV[NTimes][NPlanes],
         double aV[NTimes][3], 
         double RV[NTimes][2],
-        double wV[NTimes][3],
+        double wV[NTimes],
         double pnV[NPlanes][3], 
         double pxV[NPlanes][3],
         double srf_centers_sph[NFacets][3],
         double srf_crosses_sph[NFacets][3],
         double srf_normals_sph[NFacets][3],
         double gammadot,
-        double p0,
         double mu,
         int scale_planes_bool)
 
@@ -910,16 +724,11 @@ void frag_force(
 {
 
     double a[3] = {0};
-    double c = 0 ,s = 0;
-    double w[3] = {0};
+    double w = 0;
+    double R[2] = {0};
 
-    double chi[3] = {0};
-    double L[3][3];
-    memset(L, 0, sizeof L);
-    double A[3][3];
-    memset(A, 0, sizeof A);
     double farg[3][3];
-    memset(farg, 0, sizeof farg);
+    //memset(farg, 0, sizeof farg);
 
     //VLA's can't be initialized without explicitly assigning the values.
     //Since initializing everything to 0 was kind of overkill anyway I 
@@ -932,7 +741,6 @@ void frag_force(
 
     double pn_scaled[3] = {0};
     double px_scaled[3] = {0};
-
 
     int TimeStep, PlaneStep;
 
@@ -947,18 +755,13 @@ void frag_force(
     for ( TimeStep = 0 ; TimeStep < NTimes ; TimeStep++ )
     {
         // Assign the time-dependent variables
-        c = RV[TimeStep][0];
-        s = RV[TimeStep][1]; 
+        R[0] = RV[TimeStep][0];
+        R[1] = RV[TimeStep][1]; 
         a[0] = aV[TimeStep][0];
         a[1] = aV[TimeStep][1];
         a[2] = aV[TimeStep][2];
-        w[0] = wV[TimeStep][0];
-        w[1] = wV[TimeStep][1];
-        w[2] = wV[TimeStep][2];
-        set_L(L, c, s, gammadot);
-        set_chi(chi, a[0], a[1], a[2]);
-        set_A(A, a, w, L, chi);
-        set_farg(farg, a, w, L, A, chi, p0, mu);
+        w = wV[TimeStep];
+        set_farg(farg, a, R, w, gammadot, mu);
         
         scale_triangulation(NFacets, 
                             a,

@@ -12,9 +12,6 @@ from surface_triangulation import generate_triangulation
 from pywrappers import py_integrate_hypergeo3
 from pywrappers import py_scale_triangulation
 from pywrappers import py_scale_plane
-from pywrappers import py_set_chi
-from pywrappers import py_set_L
-from pywrappers import py_set_A
 from pywrappers import py_set_farg
 from pywrappers import py_set_force_density
 from pywrappers import py_set_force_facets

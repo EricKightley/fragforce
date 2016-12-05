@@ -589,12 +589,13 @@ def evolve(t0, t1, dt, a0, lam, mu, gammadot, Gamma, JustAngles = True):
         R             if JustAngles == True, np.array[(M,3,3)] of rotation matrices.
                       if JustAngles == False, np.array[(M,2)] where we have
                       replaced R with [R[0,0], R[1,0]]. This is to save space.
-        w             np.array[(N,3)], angular velocity at each time. 
+        w             np.array(N), angular velocity z comp at each time
         T             np.array(M) of times. 
     """ 
     Y,T = integrate_dgdt(t0,t1,dt,a0,lam,mu,gammadot,Gamma)
     axes, R = shapetensors_to_axes_rots(Y)
     w = angular_velocity(R, dt)
+    w = w[:,2]
     if JustAngles == True:
         rotAngles = np.zeros([np.shape(T)[0],2])
         rotAngles[:,0] = R[:,0,0]
@@ -620,7 +621,7 @@ def evolve_solid(t0, t1, dt, a0, gammadot, JustAngles = True):
         R             if JustAngles == True, np.array[(M,3,3)] of rotation matrices.
                       if JustAngles == False, np.array[(M,2)] where we have
                       replaced R with [R[0,0], R[1,0]]. This is to save space.
-        w             np.array[(N,3)], angular velocity at each time. 
+        w             np.array(N), angular velocity z comp at each time
         T             np.array(M) of times. 
 
     """
@@ -652,6 +653,7 @@ def evolve_solid(t0, t1, dt, a0, gammadot, JustAngles = True):
                              [  0,     0,     1 ]]).T 
                   for i in range(len(phi)) ] )
     w = angular_velocity(R, dt)
+    w = w[:,2]
     if JustAngles == True:
         # overwrite the rotation matrix with just angles
         R = np.zeros([np.shape(T)[0],2])

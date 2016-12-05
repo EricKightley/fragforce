@@ -25,10 +25,15 @@ srf_centers_sph, srf_normals_sph, srf_crosses_sph = \
 
 # integrate_hypergeo3
 force.integrate_hypergeo3.restype = ctypes.c_double
-force.integrate_hypergeo3.argtypes = [ndpointer(ctypes.c_double, flags = "C_CONTIGUOUS")]
+force.integrate_hypergeo3.argtypes = [ctypes.c_double,
+                                      ctypes.c_double,
+                                      ctypes.c_double,
+                                      ctypes.c_double,
+                                      ctypes.c_double,
+                                      ctypes.c_double]
 
-def py_integrate_hypergeo3(pV):
-    integration_result = force.integrate_hypergeo3(pV)
+def py_integrate_hypergeo3(z1,z2,z3,b1,b2,b3):
+    integration_result = force.integrate_hypergeo3(z1,z2,z3,b1,b2,b3)
     return integration_result
 
 
@@ -81,75 +86,22 @@ def py_scale_plane(a_initial, a_current, pn_initial, px_initial):
     return [edge_normal_scaled, edge_center_scaled]
 
 
-# set_chi
-force.set_chi.restype = None
-force.set_chi.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), 
-                          ctypes.c_double,
-                          ctypes.c_double,
-                          ctypes.c_double]
-def py_set_chi(a):
-    chi = np.zeros(3)
-    force.set_chi(np.ascontiguousarray(chi),
-                  a[0],
-                  a[1],
-                  a[2])
-    return chi
-
-
-# set_L
-force.set_L.restype = None
-force.set_L.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                        ctypes.c_double,
-                        ctypes.c_double,
-                        ctypes.c_double]
-
-def py_set_L(c,s,gammadot):
-    L = np.zeros([3,3])
-    force.set_L(np.ascontiguousarray(L),
-                c,
-                s,
-                gammadot)
-    return L
-
-
-# set_A
-force.set_A.restype = None
-force.set_A.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                        ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
-
-def py_set_A(a, w, L, chi):
-  A = np.zeros((3,3))
-  force.set_A(np.ascontiguousarray(A),
-              np.ascontiguousarray(a),
-              np.ascontiguousarray(w),
-              np.ascontiguousarray(L),
-              np.ascontiguousarray(chi))
-  return A
-
-
 # set_farg
 force.set_farg.restype = None
 force.set_farg.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                           ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                           ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                           ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                           ctypes.c_double,
                            ctypes.c_double,
                            ctypes.c_double]
 
-def py_set_farg(a, w, L, A, chi, p0, mu):
+def py_set_farg(a, R, w, gammadot, mu):
     farg = np.zeros((3,3))
     force.set_farg(np.ascontiguousarray(farg),
                    np.ascontiguousarray(a),
-                   np.ascontiguousarray(w),
-                   np.ascontiguousarray(L),
-                   np.ascontiguousarray(A),
-                   np.ascontiguousarray(chi),
-                   p0,
+                   np.ascontiguousarray(R),
+                   w,
+                   gammadot,
                    mu)
     return farg
 
@@ -252,10 +204,9 @@ force.frag_force.argtypes = [ctypes.c_int,
                              ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                              ctypes.c_double,
                              ctypes.c_double,
-                             ctypes.c_double,
                              ctypes.c_int]
 
-def py_frag_force(aV, RV, wV, pnV, pxV, gammadot, p0, mu, scale_planes_bool):
+def py_frag_force(aV, RV, wV, pnV, pxV, gammadot, mu, scale_planes_bool):
     [NTimes, NPlanes, NFacets] = [1,1,1]
     if aV.ndim > 1: 
         NTimes = np.shape(aV)[0]
@@ -278,7 +229,6 @@ def py_frag_force(aV, RV, wV, pnV, pxV, gammadot, p0, mu, scale_planes_bool):
         np.ascontiguousarray(srf_crosses_sph),
         np.ascontiguousarray(srf_normals_sph),
         gammadot,
-        p0,
         mu,
         scale_planes_bool)
     return forces
