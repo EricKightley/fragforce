@@ -546,7 +546,8 @@ double area_of_intersection(double a[3],
     /* Compute the area of intersection of a plane defined by normal pn
     and interior point px with an ellipsoid defined by axes lengths a.
     Note that the plane normal and interior point must be in the ellipsoid
-    frame. 
+    frame. If the interior point to the plane is outside of the ellipsoid
+    the area will be returned 0. 
 
     Inputs:
         a                      axes lengths
@@ -557,7 +558,7 @@ double area_of_intersection(double a[3],
         area                   area of intersection 
     */
 {
-    double k = 0, kt = 0, novera = 0, area = 0;
+    double k = 0, kt = 0, xovera = 0, area = 0;
     k = fabs(pn_scaled[0] * px_scaled[0] + \
              pn_scaled[1] * px_scaled[1] + \
              pn_scaled[2] * px_scaled[2]);
@@ -565,11 +566,11 @@ double area_of_intersection(double a[3],
     kt = sqrt(a[0] * a[0] * pn_scaled[0] * pn_scaled[0] + \
               a[1] * a[1] * pn_scaled[1] * pn_scaled[1] + \
               a[2] * a[2] * pn_scaled[2] * pn_scaled[2]);
-    novera = ( pn_scaled[0] / a[0] ) * ( pn_scaled[0] / a[0] ) + \
-             ( pn_scaled[1] / a[1] ) * ( pn_scaled[1] / a[1] ) + \
-             ( pn_scaled[2] / a[2] ) * ( pn_scaled[2] / a[2] );
-    // check if the plane intersects the ellipsoid at all
-    if (novera >= kt*kt*kt*kt / (kt * kt) ) {
+    xovera = ( px_scaled[0] / a[0] ) * ( px_scaled[0] / a[0] ) + \
+             ( px_scaled[1] / a[1] ) * ( px_scaled[1] / a[1] ) + \
+             ( px_scaled[2] / a[2] ) * ( px_scaled[2] / a[2] );
+    // check if the plane intersects the ellipsoid by using the interior point
+    if (xovera >= 1 ) {
         area = 0;
     }
     else {
