@@ -5,39 +5,9 @@ Numerical simulation of fluid ellipsoid in simple shear. Computes the motion,
 deformation, surface force, and fragmentation force on an ellipsoidal droplet.
 Companion to Kightley et al. (in prep). See /examples/usage.py for usage.
 
-Usage
-_____
-
-The source code in /fragforce/fragforce is available as a PyPi package,
-fragforce. This can be installed, for example, using pip:
-
-::
-
-  $ pip install fragforce
-
-Having done so, the package can then be imported just like any other:
-
-::
-
-    >>> import fragforce
-    >>> a = fragforce.somefunction(b,c)
-
-Usage examples can be found in /examples/usage.py. These assume that
-fragforce has been installed from PyPi as a python package. 
-
-
 Source Code and Local Modifications
 ___________________________________
-
-In the unlikely event that you are using this package and do not have a desk
-next to mine (our offices are under the bleachers in the football
-stadium, how do you like that?) you will likely want to modify or
-access the source code. Note that if you have installed the package
-as described above, modifying the contents of /fragforce/fragforce/
-will not affect anything you import from fragforce. Instead you'll
-need to import the functions and/or files locally. Things are set up
-to make this as painless as I know how to do. Code is distributed into 
-several independent files:
+Code is distributed into several independent files:
 
 ::
 
